@@ -104,7 +104,14 @@ export default class Sudoku {
   }
 
   onCellClick(this: HTMLDivElement, event: MouseEvent) {
-    console.log("click" + this.getAttribute('id'));
+    let previousCell = document.getElementById(`R${sudoku.currentRow}C${sudoku.currentCol}`) as HTMLDivElement;
+    previousCell.classList.remove('sudoku-cell-selected');
+
+    let id = this.getAttribute('id') as string;
+    sudoku.currentRow = +id.substr(1, 1);
+    sudoku.currentCol = +id.substr(3, 1);
+
+    this.classList.add('sudoku-cell-selected')
   }
 
   onKey(this: Document, event: KeyboardEvent) {
