@@ -32,11 +32,13 @@ h1 {
     padding: 20px;
 }
 
-.sudoku-cell-selected {
+.sudoku-cell.selected {
     background-color: limegreen;
 }
 
-
+.sudoku-cell.error {
+    background-color: red;
+}
 
 .sudoku-cell-middle-row {
     border-top: 1px solid gray;
