@@ -48,16 +48,7 @@ export default class Sudoku {
     for (let block = 0; block < 9; ++block) {
       this.blockView[block] = new Array(9);
 
-      /*
-       * Holds the row number (0, 1 or 2) of the current block.
-       * The first three blocks are at block row 0, the next three blocks are at block row 1.
-       */
       let blockRow = Math.floor(block / 3);
-
-      /*
-       * Holds the column number (0, 1 or 2) of the current block.
-       * The first, fourth and seventh block are at block column 0.
-       */
       var blockCol = block % 3;
 
       // Now store the 3 x 3 cells in a single row.
@@ -124,32 +115,45 @@ export default class Sudoku {
    */
   private validateCells(cells: Cell[], cellType: "row" | "column" | "block") {
     for (let digit = 1; digit <= 9; ++digit) {
-      let cellsWithDuplicateDigits = cells.filter((cell: Cell) => cell.val == digit);
-      for (let cell of cellsWithDuplicateDigits) {
+      let cellsWithThisDigit = cells.filter((cell: Cell) => cell.val == digit);
+      if (cellsWithThisDigit.length > 1) {
+        for (let cell of cellsWithThisDigit) {
+          console.log('v' + cell.row + cell.col);
           let sudokuCellElement = document.getElementById(Util.idFromRowCol(cell.row, cell.col)) as HTMLDivElement;
           sudokuCellElement.classList.add('error');
           sudokuCellElement.setAttribute("title", "This " + cellType + ", already contains the digit " + digit);
         }
+      }
     }
   }
 
-  onCellClick(this: HTMLDivElement, event: MouseEvent) {
-    const previousCell = document.getElementById(Util.idFromRowCol(sudoku.currentRow, sudoku.currentCol)) as HTMLDivElement;
-    previousCell.classList.remove('selected');
+  public toString(): string {
+    let result = ''
+    for (let row = 0; row < 9; ++row) {
+      for (let col = 0; col < 9; ++col) {
+        result += +sudoku.rowView[row][col].val;
+      }
+      result += '\n';
+    }
 
+    return result;
+  }
+
+  onCellClick(this: HTMLDivElement, event: MouseEvent) {
     let id = this.getAttribute('id') as string;
-    console.log(id);
     [sudoku.currentRow, sudoku.currentCol] = Util.rowColFromId(id);
 
-    console.log(sudoku.currentRow, sudoku.currentCol);
-
-    this.classList.add('selected')
+    Util.clearStyleFromAllCells();
+    this.classList.add('selected');
   }
 
   onKey(this: Document, event: KeyboardEvent) {
     let cell = document.getElementById(Util.idFromRowCol(sudoku.currentRow, sudoku.currentCol)) as HTMLDivElement;
 
     switch (event.key) {
+      case '`':
+        console.log(sudoku.toString());
+        break;
       case '0':
       case '1':
       case '2':
@@ -166,26 +170,22 @@ export default class Sudoku {
       case 'ArrowLeft':
         cell.classList.remove('selected');
         sudoku.currentCol = sudoku.currentCol === 0 ? 8 : --sudoku.currentCol;
-        cell = document.getElementById(Util.idFromRowCol(sudoku.currentRow, sudoku.currentCol)) as HTMLDivElement;
-        cell.classList.add('selected');
+        Util.selectCell(sudoku.currentRow, sudoku.currentCol);
         break;
       case 'ArrowRight':
         cell.classList.remove('selected');
         sudoku.currentCol = sudoku.currentCol === 8 ? 0 : ++sudoku.currentCol;
-        cell = document.getElementById(Util.idFromRowCol(sudoku.currentRow, sudoku.currentCol)) as HTMLDivElement;
-        cell.classList.add('selected');
+        Util.selectCell(sudoku.currentRow, sudoku.currentCol);
         break;
       case 'ArrowUp':
         cell.classList.remove('selected');
         sudoku.currentRow = sudoku.currentRow === 0 ? 8 : --sudoku.currentRow;
-        cell = document.getElementById(Util.idFromRowCol(sudoku.currentRow, sudoku.currentCol)) as HTMLDivElement;
-        cell.classList.add('selected');
+        Util.selectCell(sudoku.currentRow, sudoku.currentCol);
         break;
       case 'ArrowDown':
         cell.classList.remove('selected');
         sudoku.currentRow = sudoku.currentRow === 8 ? 0 : ++sudoku.currentRow;
-        cell = document.getElementById(Util.idFromRowCol(sudoku.currentRow, sudoku.currentCol)) as HTMLDivElement;
-        cell.classList.add('selected');
+        Util.selectCell(sudoku.currentRow, sudoku.currentCol);
         break;
 
     }
