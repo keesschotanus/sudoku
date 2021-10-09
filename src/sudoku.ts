@@ -1,12 +1,9 @@
 import Cell from './cell.js';
-import Util from './util.js';
+import SudokuView from './sudoku-view.js';
 
 let sudoku: Sudoku;
 document.addEventListener('DOMContentLoaded', event => {
   sudoku = new Sudoku();
-  document.addEventListener('keydown', sudoku.onKey);
-
-  document.getElementById('validateButton')?.addEventListener('click', sudoku.validate);
 });
 
 
@@ -14,18 +11,21 @@ export default class Sudoku {
   rowView: Cell[][] = new Array(9);
   colView: Cell[][] = new Array(9);
   blockView: Cell[][] = new Array(9);
+  sudokuView: SudokuView;
 
   currentRow = 0;
   currentCol = 0;
 
   constructor() {
-    this.createRowView();
-    this.createColumnView();
-    this.createBlockView();
-    this.renderSudoku();
+    this.createRowModel();
+    this.createColumnModel();
+    this.createBlockModel();
+
+    this.sudokuView = new SudokuView(this);
+    this.sudokuView.renderSudoku();
   }
 
-  private createRowView() {
+  private createRowModel() {
     for (let row = 0; row < 9; ++row) {
       this.rowView[row] = new Array(9);
 
@@ -35,7 +35,7 @@ export default class Sudoku {
     }
   }
 
-  private createColumnView() {
+  private createColumnModel() {
     for (let col = 0; col < 9; ++col) {
       this.colView[col] = new Array(9);
       for (let row = 0; row < 9; ++row) {
@@ -44,7 +44,7 @@ export default class Sudoku {
     }
   }
 
-  private createBlockView() {
+  private createBlockModel() {
     for (let block = 0; block < 9; ++block) {
       this.blockView[block] = new Array(9);
 
@@ -59,39 +59,6 @@ export default class Sudoku {
         };
       };
     };
-  }
-
-  renderSudoku() {
-      for (let blockRow = 0; blockRow < 3; ++blockRow) {
-      for (let blockCol = 0; blockCol < 3; ++blockCol) {
-        this.renderBlock(blockRow, blockCol);
-      }
-    }
-  }
-
-  private renderBlock(blockRow: number, blockCol: number) {
-    let divBlock = document.createElement('div');
-    divBlock.className = 'sudoku-block';
-    divBlock.className = blockRow == 1 ? divBlock.className + ' sudoku-block-middle-row' : divBlock.className;
-    divBlock.className = blockCol == 1 ? divBlock.className + ' sudoku-block-middle-col' : divBlock.className;
-
-    // Each block has another 3 x 3 grid
-    for (let row = 0; row < 3; ++row) {
-      for (let col = 0; col < 3; ++col) {
-        let divCell = document.createElement('div');
-        divCell.className = 'sudoku-cell hidden';
-        divCell.className = row == 1 ? divCell.className + ' sudoku-cell-middle-row' : divCell.className;
-        divCell.className = col == 1 ? divCell.className + ' sudoku-cell-middle-col' : divCell.className;
-        divCell.id = Util.idFromRowCol(blockRow * 3 + row, blockCol * 3 + col);
-        divCell.innerText = '0';
-        divCell.addEventListener('click', this.onCellClick);
-
-        divBlock.appendChild(divCell);
-      }
-    }
-
-    let sudokuContainer: HTMLDivElement = document.getElementById("sudoku") as HTMLDivElement;
-    sudokuContainer.appendChild(divBlock);
   }
 
   /*
@@ -119,7 +86,7 @@ export default class Sudoku {
       if (cellsWithThisDigit.length > 1) {
         for (let cell of cellsWithThisDigit) {
           console.log('v' + cell.row + cell.col);
-          let sudokuCellElement = document.getElementById(Util.idFromRowCol(cell.row, cell.col)) as HTMLDivElement;
+          let sudokuCellElement = document.getElementById(SudokuView.idFromRowCol(cell.row, cell.col)) as HTMLDivElement;
           sudokuCellElement.classList.add('error');
           sudokuCellElement.setAttribute("title", "This " + cellType + ", already contains the digit " + digit);
         }
@@ -139,64 +106,5 @@ export default class Sudoku {
     return result;
   }
 
-  onCellClick(this: HTMLDivElement, event: MouseEvent) {
-    let id = this.getAttribute('id') as string;
-    [sudoku.currentRow, sudoku.currentCol] = Util.rowColFromId(id);
-
-    Util.clearStyleFromAllCells();
-    this.classList.add('selected');
-  }
-
-  onKey(this: Document, event: KeyboardEvent) {
-    let cell = document.getElementById(Util.idFromRowCol(sudoku.currentRow, sudoku.currentCol)) as HTMLDivElement;
-
-    switch (event.key) {
-      case '`':
-        console.log(sudoku.toString());
-        break;
-      case '0':
-        cell.classList.add('hidden');
-        cell.innerText = '' + event.key;
-        sudoku.rowView[sudoku.currentRow][sudoku.currentCol].val = +event.key;
-        break;
-      case '1':
-      case '2':
-      case '3':
-      case '4':
-      case '5':
-      case '6':
-      case '7':
-      case '8':
-      case '9':
-        cell.innerText = '' + event.key;
-        cell.classList.remove('hidden');
-        sudoku.rowView[sudoku.currentRow][sudoku.currentCol].val = +event.key;
-        break;
-      case 'ArrowLeft':
-        cell.classList.remove('selected');
-        sudoku.currentCol = sudoku.currentCol === 0 ? 8 : --sudoku.currentCol;
-        Util.selectCell(sudoku.currentRow, sudoku.currentCol);
-        break;
-      case 'ArrowRight':
-        cell.classList.remove('selected');
-        sudoku.currentCol = sudoku.currentCol === 8 ? 0 : ++sudoku.currentCol;
-        Util.selectCell(sudoku.currentRow, sudoku.currentCol);
-        break;
-      case 'ArrowUp':
-        cell.classList.remove('selected');
-        sudoku.currentRow = sudoku.currentRow === 0 ? 8 : --sudoku.currentRow;
-        Util.selectCell(sudoku.currentRow, sudoku.currentCol);
-        break;
-      case 'ArrowDown':
-        cell.classList.remove('selected');
-        sudoku.currentRow = sudoku.currentRow === 8 ? 0 : ++sudoku.currentRow;
-        Util.selectCell(sudoku.currentRow, sudoku.currentCol);
-        break;
-
-    }
-
-    console.log('key:' + event.key);
-
-  }
 
 }
