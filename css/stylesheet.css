@@ -32,8 +32,19 @@ h1 {
     padding: 20px;
 }
 
+.sudoku-cell.hidden {
+    background-color: 2196F3;
+    color: #2196F3;
+}
+
 .sudoku-cell.selected {
     background-color: limegreen;
+    color: black;
+}
+
+.sudoku-cell.selected.hidden {
+    background-color: limegreen;
+    color: limegreen;
 }
 
 .sudoku-cell.error {

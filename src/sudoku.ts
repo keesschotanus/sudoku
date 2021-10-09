@@ -79,7 +79,7 @@ export default class Sudoku {
     for (let row = 0; row < 3; ++row) {
       for (let col = 0; col < 3; ++col) {
         let divCell = document.createElement('div');
-        divCell.className = 'sudoku-cell';
+        divCell.className = 'sudoku-cell hidden';
         divCell.className = row == 1 ? divCell.className + ' sudoku-cell-middle-row' : divCell.className;
         divCell.className = col == 1 ? divCell.className + ' sudoku-cell-middle-col' : divCell.className;
         divCell.id = Util.idFromRowCol(blockRow * 3 + row, blockCol * 3 + col);
@@ -155,6 +155,10 @@ export default class Sudoku {
         console.log(sudoku.toString());
         break;
       case '0':
+        cell.classList.add('hidden');
+        cell.innerText = '' + event.key;
+        sudoku.rowView[sudoku.currentRow][sudoku.currentCol].val = +event.key;
+        break;
       case '1':
       case '2':
       case '3':
@@ -165,6 +169,7 @@ export default class Sudoku {
       case '8':
       case '9':
         cell.innerText = '' + event.key;
+        cell.classList.remove('hidden');
         sudoku.rowView[sudoku.currentRow][sudoku.currentCol].val = +event.key;
         break;
       case 'ArrowLeft':
