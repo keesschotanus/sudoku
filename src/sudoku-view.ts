@@ -1,3 +1,4 @@
+import Cell from "./cell";
 import Sudoku from "./sudoku";
 
 export default class SudokuView {
@@ -6,7 +7,10 @@ export default class SudokuView {
   constructor(model: Sudoku) {
     this.model = model;
     document.addEventListener('keydown', this.onKey);
-    document.getElementById('validateButton')?.addEventListener('click', this.model.validate);
+    document.getElementById('validateButton')?.addEventListener('click', this.validate);
+    document.getElementById('updateButton')?.addEventListener('click', this.update);
+    document.getElementById('nakedSinglesButton')?.addEventListener('click', this.nakedSingles);
+    document.getElementById('hiddenSinglesButton')?.addEventListener('click', this.hiddenSingles);
   }
 
   public static idFromRowCol(row: number, col: number): string {
@@ -19,7 +23,7 @@ export default class SudokuView {
 
   public static clearStyleFromAllCells() {
     SudokuView.forEachCell((cell: HTMLDivElement) => {
-      cell.classList.remove('error', 'selected');
+      cell.classList.remove('error', 'selected', "naked-singles");
     });
   }
 
@@ -96,7 +100,7 @@ export default class SudokuView {
       case '0':
         cell.classList.add('hidden');
         cell.innerText = '' + event.key;
-        this.model.rowView[this.model.currentRow][this.model.currentCol].val = +event.key;
+        this.model.rowModel[this.model.currentRow][this.model.currentCol].val = +event.key;
         break;
       case '1':
       case '2':
@@ -109,7 +113,7 @@ export default class SudokuView {
       case '9':
         cell.innerText = '' + event.key;
         cell.classList.remove('hidden');
-        this.model.rowView[this.model.currentRow][this.model.currentCol].val = +event.key;
+        this.model.rowModel[this.model.currentRow][this.model.currentCol].val = +event.key;
         break;
       case 'ArrowLeft':
         this.selectCell(cell, this.model.currentRow, this.model.currentCol === 0 ? 8 : this.model.currentCol - 1);
@@ -127,5 +131,31 @@ export default class SudokuView {
 
   }
 
+  validate = (event: MouseEvent) => {
+    this.model.validate();
+  };
+
+  update = (event: MouseEvent) => {
+    this.model.updatePencilMarks();
+  };
+
+  nakedSingles = (event: MouseEvent) => {
+    const nakedSingles = this.model.findNakedSingles();
+    nakedSingles.forEach((modelCell: Cell) => {
+      let viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
+      const digit = modelCell.getCandidates()[0];
+      viewCell.classList.add('naked-single');
+      viewCell.setAttribute('title', 'Naked single, can only contain a ' + digit);
+    });
+  };
+
+  hiddenSingles = (event: MouseEvent) => {
+    const hiddenSingles = this.model.findHiddenSingles();
+    hiddenSingles.forEach((modelCell: Cell) => {
+      let viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
+      viewCell.classList.add('hidden-single');
+      viewCell.setAttribute('title', 'Hidden single, can only contain a ' + modelCell.digit);
+    });
+  };
 
 }

@@ -9,6 +9,7 @@ export default class Cell {
   val: number;          // Value of the cell or zero when it has no value yet
   block: number;        // Zero based block number
   candidates: number[]; // Possible candidate values this cell can have
+  digit: number;        // Used to communicate data 
 
   constructor(row: number, col: number) {
     this.row = row;
@@ -17,6 +18,16 @@ export default class Cell {
     this.val = 0;
     this.block = Math.floor(this.row / 3) * 3 + Math.floor(this.col / 3);
     this.candidates = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+    this.digit = 0;
+  }
+
+  getCandidates(): number[] {
+    return this.candidates.filter((candidate) => candidate !== 0);
+  }
+
+  getNumberOfCandidates(): number {
+    return this.candidates.reduce((length: number, candidate: number): number => candidate === 0 ? length : length + 1);
   }
 
   /* 

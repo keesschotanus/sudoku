@@ -8,9 +8,9 @@ document.addEventListener('DOMContentLoaded', event => {
 
 
 export default class Sudoku {
-  rowView: Cell[][] = new Array(9);
-  colView: Cell[][] = new Array(9);
-  blockView: Cell[][] = new Array(9);
+  rowModel: Cell[][] = new Array(9);
+  colModel: Cell[][] = new Array(9);
+  blockModel: Cell[][] = new Array(9);
   sudokuView: SudokuView;
 
   currentRow = 0;
@@ -27,26 +27,26 @@ export default class Sudoku {
 
   private createRowModel() {
     for (let row = 0; row < 9; ++row) {
-      this.rowView[row] = new Array(9);
+      this.rowModel[row] = new Array(9);
 
       for (let col: number = 0; col < 9; ++col) {
-        this.rowView[row][col] = new Cell(row, col);
+        this.rowModel[row][col] = new Cell(row, col);
       }
     }
   }
 
   private createColumnModel() {
     for (let col = 0; col < 9; ++col) {
-      this.colView[col] = new Array(9);
+      this.colModel[col] = new Array(9);
       for (let row = 0; row < 9; ++row) {
-        this.colView[col][row] = this.rowView[row][col];
+        this.colModel[col][row] = this.rowModel[row][col];
       }
     }
   }
 
   private createBlockModel() {
     for (let block = 0; block < 9; ++block) {
-      this.blockView[block] = new Array(9);
+      this.blockModel[block] = new Array(9);
 
       let blockRow = Math.floor(block / 3);
       var blockCol = block % 3;
@@ -55,7 +55,7 @@ export default class Sudoku {
       let column = 0;
       for (let cellRow = 0; cellRow <= 2; ++cellRow) {
         for (let cellCol = 0; cellCol <= 2; ++cellCol) {
-          this.blockView[block][column++] = this.rowView[blockRow * 3 + cellRow][blockCol * 3 + cellCol];
+          this.blockModel[block][column++] = this.rowModel[blockRow * 3 + cellRow][blockCol * 3 + cellCol];
         };
       };
     };
@@ -66,11 +66,11 @@ export default class Sudoku {
     * A Sudoku is valid if each row, column and block does not contain a duplicate (non zero) digit.
     * Duplicates are marked by adding the class name "error" to all offending cells.
     */
-  validate(this: HTMLButtonElement) {
+  validate() {
     for (let index = 0; index < 9; ++index) {
-      sudoku.validateCells(sudoku.rowView[index], "row");
-      sudoku.validateCells(sudoku.colView[index], "column");
-      sudoku.validateCells(sudoku.blockView[index], "block");
+      sudoku.validateCells(sudoku.rowModel[index], "row");
+      sudoku.validateCells(sudoku.colModel[index], "column");
+      sudoku.validateCells(sudoku.blockModel[index], "block");
     }
   }
 
@@ -94,11 +94,84 @@ export default class Sudoku {
     }
   }
 
+  public forEachCell(callback: (cell: Cell) => void): void {
+    for (let row = 0; row < 9; ++row) {
+      for (let col = 0; col < 9; ++col) {
+        let cell = this.rowModel[row][col];
+        callback(cell);
+      }
+    }
+  }
+
+  public resetPencilMarks() {
+    this.forEachCell((cell: Cell) => {
+      for (let i = 0; i < 10; ++i) {
+        cell.candidates[i] = i;
+      }
+    })
+  }
+
+  public updatePencilMarks() {
+    this.resetPencilMarks();
+
+    // For each cell with a value (other than 0)
+    //  Remove the value as a candidate from the same row, column and block
+    this.forEachCell((cell: Cell) => {
+      if (cell.val != 0) {
+        for (let i = 0; i < 9; ++i) {
+          this.rowModel[cell.row][i].candidates[cell.val] = 0;
+          this.colModel[cell.col][i].candidates[cell.val] = 0;
+          this.blockModel[cell.block][i].candidates[cell.val] = 0;
+        }
+      }
+    });
+  }
+
+  public findNakedSingles(): Cell[] {
+    const result: Cell[] = [];
+    this.forEachCell((cell: Cell) => {
+      if (cell.val === 0) {
+        if (cell.getNumberOfCandidates() === 1) {
+          result.push(cell);
+        }
+      }
+    });
+   
+    return result;
+  }
+
+  public findHiddenSingles(): Cell[] {
+    const result: Cell[] = [];
+
+    for (let i = 0; i < 9; ++i) {
+      result.push(...this.findHiddenSinglesForCells(this.rowModel[i]));
+      result.push(...this.findHiddenSinglesForCells(this.colModel[i]));
+      result.push(...this.findHiddenSinglesForCells(this.blockModel[i]));
+    }
+  
+    return result;
+  }
+
+  private findHiddenSinglesForCells(cells: Cell[]): Cell[] {
+    const result: Cell[] = [];
+    for (let digit = 1; digit <= 9; ++digit) {
+      const hiddenSingles = cells.filter((cell: Cell) => cell.val === 0 && cell.candidates[digit] === digit);
+      if (hiddenSingles.length == 1) {
+        const cell = hiddenSingles[0];
+        cell.digit = digit;
+        result.push(cell);
+      }
+
+    }
+
+    return result;
+  }
+
   public toString(): string {
     let result = ''
     for (let row = 0; row < 9; ++row) {
       for (let col = 0; col < 9; ++col) {
-        result += +sudoku.rowView[row][col].val;
+        result += +sudoku.rowModel[row][col].val;
       }
       result += '\n';
     }
