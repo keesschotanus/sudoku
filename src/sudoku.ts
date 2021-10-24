@@ -1,12 +1,6 @@
 import Cell from './cell.js';
 import SudokuView from './sudoku-view.js';
 
-let sudoku: Sudoku;
-document.addEventListener('DOMContentLoaded', event => {
-  sudoku = new Sudoku();
-});
-
-
 export default class Sudoku {
   rowModel: Cell[][] = new Array(9);
   colModel: Cell[][] = new Array(9);
@@ -56,39 +50,6 @@ export default class Sudoku {
       for (let cellRow = 0; cellRow <= 2; ++cellRow) {
         for (let cellCol = 0; cellCol <= 2; ++cellCol) {
           this.blockModel[block][column++] = this.rowModel[blockRow * 3 + cellRow][blockCol * 3 + cellCol];
-        };
-      };
-    };
-  }
-
-  /*
-    * Tests whether this Sudoku is valid or not.
-    * A Sudoku is valid if each row, column and block does not contain a duplicate (non zero) digit.
-    * Duplicates are marked by adding the class name "error" to all offending cells.
-    */
-  validate() {
-    for (let index = 0; index < 9; ++index) {
-      sudoku.validateCells(sudoku.rowModel[index], "row");
-      sudoku.validateCells(sudoku.colModel[index], "column");
-      sudoku.validateCells(sudoku.blockModel[index], "block");
-    }
-  }
-
-  /*
-   * Determines if the supplied sudokuCells don't contain a duplicate (non zero digit).
-   * @param sudokuCells The Sudoku cells to check.
-   * @param sudokuCellContainer The name of the container of the supplied sudokuCells.
-   *  Should be one of: row, column or block. 
-   */
-  private validateCells(cells: Cell[], cellType: "row" | "column" | "block") {
-    for (let digit = 1; digit <= 9; ++digit) {
-      let cellsWithThisDigit = cells.filter((cell: Cell) => cell.val == digit);
-      if (cellsWithThisDigit.length > 1) {
-        for (let cell of cellsWithThisDigit) {
-          console.log('v' + cell.row + cell.col);
-          let sudokuCellElement = document.getElementById(SudokuView.idFromRowCol(cell.row, cell.col)) as HTMLDivElement;
-          sudokuCellElement.classList.add('error');
-          sudokuCellElement.setAttribute("title", "This " + cellType + ", already contains the digit " + digit);
         }
       }
     }
@@ -101,6 +62,34 @@ export default class Sudoku {
         callback(cell);
       }
     }
+  }
+
+  public forEachHouse(callback: (cells: Cell[], house: string) => void): void {
+    for (let index = 0; index < 9; ++index) {
+      callback(sudoku.rowModel[index], "row");
+      callback(sudoku.colModel[index], "column");
+      callback(sudoku.blockModel[index], "block");
+    }
+  }
+
+  /*
+    * Tests whether this Sudoku is valid or not.
+    * A Sudoku is valid if each row, column and block does not contain a duplicate (non zero) digit.
+    * Duplicates are marked by adding the class name "error" to all offending cells.
+    */
+  validate() {
+    this.forEachHouse((cells: Cell[], house: string) => {
+      for (let digit = 1; digit <= 9; ++digit) {
+        let cellsWithThisDigit = cells.filter((cell: Cell) => cell.val == digit);
+        if (cellsWithThisDigit.length > 1) {
+          for (let cell of cellsWithThisDigit) {
+            const sudokuCellElement = document.getElementById(SudokuView.idFromRowCol(cell.row, cell.col)) as HTMLDivElement;
+            sudokuCellElement.classList.add('error');
+            sudokuCellElement.setAttribute("title", `This ${house}, already contains the digit: ${digit}`);
+          }
+        }
+      }
+    });
   }
 
   public resetPencilMarks() {
@@ -179,5 +168,10 @@ export default class Sudoku {
     return result;
   }
 
-
 }
+
+let sudoku: Sudoku;
+document.addEventListener('DOMContentLoaded', event => {
+  sudoku = new Sudoku();
+});
+
