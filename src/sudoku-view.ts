@@ -7,6 +7,7 @@ export default class SudokuView {
   constructor(model: Sudoku) {
     this.model = model;
     document.addEventListener('keydown', this.onKey);
+    document.getElementById('exampleButton')?.addEventListener('click', this.example);
     document.getElementById('validateButton')?.addEventListener('click', this.validate);
     document.getElementById('updateButton')?.addEventListener('click', this.update);
     document.getElementById('nakedSinglesButton')?.addEventListener('click', this.nakedSingles);
@@ -131,6 +132,50 @@ export default class SudokuView {
 
   }
 
+  example = (event: MouseEvent) => {
+    this.setValue(0,3,6);
+    this.setValue(0,4,9);
+    this.setValue(0,7,1);
+
+    this.setValue(1,4,1);
+    this.setValue(1,6,4);
+    this.setValue(1,8,5);
+
+    this.setValue(2,3,3);
+
+    this.setValue(3,4,3);
+    this.setValue(3,7,2);
+    this.setValue(3,8,7);
+
+    this.setValue(4,0,3);
+    this.setValue(4,2,6);
+    this.setValue(4,4,2);
+    this.setValue(4,6,5);
+
+    this.setValue(5,1,7);
+    this.setValue(5,2,5);
+    this.setValue(5,3,1);
+    this.setValue(5,7,6);
+    this.setValue(5,8,3);
+
+    this.setValue(6,2,9);
+    this.setValue(6,3,7);
+
+    this.setValue(7,1,2);
+
+    this.setValue(8,0,7);
+    this.setValue(8,1,1);
+    this.setValue(8,2,8);
+    this.setValue(8,3,2);
+  };
+
+  private setValue(row: number, col: number, val: number) {
+    let viewCell = document.getElementById(SudokuView.idFromRowCol(row, col)) as HTMLDivElement;
+    viewCell.innerText = '' + val;
+    viewCell.classList.remove('hidden');
+    this.model.rowModel[row][col].val = val;
+}
+
   validate = (event: MouseEvent) => {
     this.model.validate();
   };
@@ -140,8 +185,8 @@ export default class SudokuView {
   };
 
   nakedSingles = (event: MouseEvent) => {
-    const nakedSingles = this.model.findNakedSingles();
-    nakedSingles.forEach((modelCell: Cell) => {
+    const nakedCells = this.model.findNaked(1);
+    nakedCells.forEach((modelCell: Cell) => {
       let viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
       const digit = modelCell.getCandidates()[0];
       viewCell.classList.add('naked-single');

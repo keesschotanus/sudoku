@@ -116,6 +116,30 @@ export default class Sudoku {
     });
   }
 
+  public findNaked(size: number): Cell[] {
+    const result: Cell[] = [];
+    this.forEachHouse((cells: Cell[], house) => {
+      cells.forEach((cell: Cell, index: number) => {
+        if (cell.val === 0 && cell.getNumberOfCandidates() === size) {
+          // See if remaining cells have the same content as the current cell
+          let matchingCells: Cell[] = new Array<Cell>();
+          matchingCells.push(cell);
+          for (let remainingCellIndex = index + 1; remainingCellIndex < cells.length; ++remainingCellIndex) {
+            if (cell.val === 0 && cell.hasSameCandidates(cells[remainingCellIndex])) {
+              matchingCells.push()
+            }
+          }
+          if (matchingCells.length === size) {
+            console.log("Found naked" + matchingCells[0]);
+            result.push(...matchingCells);
+          }
+        }
+      });
+    });
+
+    return result;
+  }
+
   public findNakedSingles(): Cell[] {
     const result: Cell[] = [];
     this.forEachCell((cell: Cell) => {

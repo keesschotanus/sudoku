@@ -30,6 +30,19 @@ export default class Cell {
     return this.candidates.reduce((length: number, candidate: number): number => candidate === 0 ? length : length + 1);
   }
 
+  hasSameCandidates(other: Cell): boolean {
+    let thisCandidates = this.getCandidates();
+    let otherCandidates = other.getCandidates();
+
+    for (let index = 0; index < thisCandidates.length && thisCandidates === otherCandidates; ++index) {
+      if (thisCandidates[index] !== otherCandidates[index]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+  
   /* 
    * Creates a String representation of this Sudoku cell. 
    * @return a String representation of this Sudoku cell. 
