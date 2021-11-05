@@ -101,10 +101,8 @@ export default class Sudoku {
   }
 
   public updatePencilMarks() {
-    this.resetPencilMarks();
-
     // For each cell with a value (other than 0)
-    //  Remove the value as a candidate from the same row, column and block
+    // Remove the value as a candidate from the same row, column and block
     this.forEachCell((cell: Cell) => {
       if (cell.val != 0) {
         for (let i = 0; i < 9; ++i) {
@@ -125,31 +123,19 @@ export default class Sudoku {
           let matchingCells: Cell[] = new Array<Cell>();
           matchingCells.push(cell);
           for (let remainingCellIndex = index + 1; remainingCellIndex < cells.length; ++remainingCellIndex) {
-            if (cell.val === 0 && cell.hasSameCandidates(cells[remainingCellIndex])) {
-              matchingCells.push()
+            if (cells[remainingCellIndex].val === 0 && cell.hasSameCandidates(cells[remainingCellIndex])) {
+              matchingCells.push(cells[remainingCellIndex]);
             }
           }
           if (matchingCells.length === size) {
-            console.log("Found naked" + matchingCells[0]);
+            // Remove pencil amrks from the non-matching cells
             result.push(...matchingCells);
           }
         }
       });
+
     });
 
-    return result;
-  }
-
-  public findNakedSingles(): Cell[] {
-    const result: Cell[] = [];
-    this.forEachCell((cell: Cell) => {
-      if (cell.val === 0) {
-        if (cell.getNumberOfCandidates() === 1) {
-          result.push(cell);
-        }
-      }
-    });
-   
     return result;
   }
 

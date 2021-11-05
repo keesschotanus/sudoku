@@ -34,13 +34,14 @@ export default class Cell {
     let thisCandidates = this.getCandidates();
     let otherCandidates = other.getCandidates();
 
-    for (let index = 0; index < thisCandidates.length && thisCandidates === otherCandidates; ++index) {
+    let result = thisCandidates.length === otherCandidates.length;
+    for (let index = 0; index < thisCandidates.length && result; ++index) {
       if (thisCandidates[index] !== otherCandidates[index]) {
-        return false;
+        result = false;
       }
     }
 
-    return true;
+    return result;
   }
   
   /* 

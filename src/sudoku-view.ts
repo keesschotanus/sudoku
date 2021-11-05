@@ -11,6 +11,7 @@ export default class SudokuView {
     document.getElementById('validateButton')?.addEventListener('click', this.validate);
     document.getElementById('updateButton')?.addEventListener('click', this.update);
     document.getElementById('nakedSinglesButton')?.addEventListener('click', this.nakedSingles);
+    document.getElementById('nakedDoublesButton')?.addEventListener('click', this.nakedDoubles);
     document.getElementById('hiddenSinglesButton')?.addEventListener('click', this.hiddenSingles);
   }
 
@@ -102,6 +103,7 @@ export default class SudokuView {
         cell.classList.add('hidden');
         cell.innerText = '' + event.key;
         this.model.rowModel[this.model.currentRow][this.model.currentCol].val = +event.key;
+        this.model.resetPencilMarks();
         break;
       case '1':
       case '2':
@@ -113,8 +115,11 @@ export default class SudokuView {
       case '8':
       case '9':
         cell.innerText = '' + event.key;
-        cell.classList.remove('hidden');
+        cell.classList.remove('hidden', 'hidden-single', 'hidden-double', 'naked-single', 'naked-double');
         this.model.rowModel[this.model.currentRow][this.model.currentCol].val = +event.key;
+        if (this.model.rowModel[this.model.currentRow][this.model.currentCol].val !== +event.key) {
+          this.model.resetPencilMarks();
+        }
         break;
       case 'ArrowLeft':
         this.selectCell(cell, this.model.currentRow, this.model.currentCol === 0 ? 8 : this.model.currentCol - 1);
@@ -191,6 +196,16 @@ export default class SudokuView {
       const digit = modelCell.getCandidates()[0];
       viewCell.classList.add('naked-single');
       viewCell.setAttribute('title', 'Naked single, can only contain a ' + digit);
+    });
+  };
+
+  nakedDoubles = (event: MouseEvent) => {
+    const nakedCells = this.model.findNaked(2);
+    nakedCells.forEach((modelCell: Cell) => {
+      let viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
+      const digits = modelCell.getCandidates();
+      viewCell.classList.add('naked-double');
+      viewCell.setAttribute('title', 'Naked double, can only contain the digits ' + digits);
     });
   };
 
