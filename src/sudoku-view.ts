@@ -1,5 +1,5 @@
 import Cell from "./cell";
-import Sudoku from "./sudoku";
+import Sudoku, { InvalidCell } from "./sudoku";
 
 export default class SudokuView {
   private model: Sudoku;
@@ -9,7 +9,6 @@ export default class SudokuView {
     document.addEventListener('keydown', this.onKey);
     document.getElementById('exampleButton')?.addEventListener('click', this.example);
     document.getElementById('validateButton')?.addEventListener('click', this.validate);
-    document.getElementById('updateButton')?.addEventListener('click', this.update);
     document.getElementById('nakedSinglesButton')?.addEventListener('click', this.nakedSingles);
     document.getElementById('nakedDoublesButton')?.addEventListener('click', this.nakedDoubles);
     document.getElementById('hiddenSinglesButton')?.addEventListener('click', this.hiddenSingles);
@@ -182,15 +181,16 @@ export default class SudokuView {
 }
 
   validate = (event: MouseEvent) => {
-    this.model.validate();
-  };
-
-  update = (event: MouseEvent) => {
-    this.model.updatePencilMarks();
+    const invalidCells = this.model.validate();
+    invalidCells.forEach((invalidCell: InvalidCell) => {
+      const sudokuCellElement = document.getElementById(SudokuView.idFromRowCol(invalidCell.cell.row, invalidCell.cell.col)) as HTMLDivElement;
+      sudokuCellElement.classList.add('error');
+      sudokuCellElement.setAttribute("title", `The cell in this ${invalidCell.house}, contains the duplicate digit: ${invalidCell.digit}`);
+    });
   };
 
   nakedSingles = (event: MouseEvent) => {
-    const nakedCells = this.model.findNaked(1);
+    const nakedCells = this.model.findNakedValues(1);
     nakedCells.forEach((modelCell: Cell) => {
       let viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
       const digit = modelCell.getCandidates()[0];
@@ -200,7 +200,7 @@ export default class SudokuView {
   };
 
   nakedDoubles = (event: MouseEvent) => {
-    const nakedCells = this.model.findNaked(2);
+    const nakedCells = this.model.findNakedValues(2);
     nakedCells.forEach((modelCell: Cell) => {
       let viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
       const digits = modelCell.getCandidates();
