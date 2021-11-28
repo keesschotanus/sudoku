@@ -158,7 +158,7 @@ export default class Sudoku {
       for (let i = 0; i < 10; ++i) {
         cell.candidates[i] = i;
       }
-    })
+    });
   }
 
   /**
@@ -191,7 +191,7 @@ export default class Sudoku {
       if (!cellsToNotTouch.includes(cell)) {
         candidates.forEach((digit: number) => {
           cell.candidates[digit] = 0;
-        })
+        });
       }
     });
   }
@@ -233,6 +233,52 @@ export default class Sudoku {
     return result;
   }
 
+  /**
+   * Finds pointing values.
+   * When a row or column in a block is the only row or column
+   * containing a certain digit as a candidate, then the same digit
+   * can be removed from other blocks  in the same row or column.
+   * Assume for example that only the first three cells of the second row
+   * have 1 as a candidate and the remaining cells in the block do not.
+   * Then 1 can be removed as a candidate from the other cells in the same row.
+   * @returns All the cells with candidates that are removed.
+   */
+  public findPointingValues(): Cell[] {
+    this.updatePencilMarks();
+    const result: Cell[] = [];
+    for (let rc = 0; rc < 9; ++rc) {
+      for (let treeCells = 0; treeCells < 3; ++treeCells) {
+        const threeRowCells = this.rowModel[rc].slice(treeCells * 3, treeCells * 3 + 3);
+        this.findPointingValuesForCells(threeRowCells, this.blockModel[threeRowCells[0].block], this.rowModel[rc]);
+
+        const threeColCells = this.colModel[rc].slice(treeCells * 3, treeCells * 3 + 3);
+        this.findPointingValuesForCells(threeColCells, this.blockModel[threeColCells[0].block], this.colModel[rc]);
+      }
+    }
+    
+    return result;
+  }
+
+  private findPointingValuesForCells(threeCells: Cell[], blockCells: Cell[], houseCells: Cell[]) {
+    // Check if the "three cells" contain digits not occurring in the "block cells"
+    for (let digit = 1; digit <= 9; ++digit) {
+      threeCells.forEach((cell: Cell) => {
+        if (cell.val == 0 && cell.candidates[digit] === digit) {
+          // Check if the remaining cells in the block do not contain the digit
+          if (!blockCells.some((blockCell: Cell) => blockCell.val === 0 && blockCell.candidates[digit] === digit && !blockCell.inSet(threeCells))) {
+            // Remove the digit as a candidate from the supplied house cells
+            houseCells.forEach((houseCell: Cell) => {
+              if (!houseCell.inSet(threeCells) && houseCell.val === 0 && houseCell.candidates[digit] === digit) {
+                console.log(`Can remove digit: ${digit} from cell: ${houseCell}`);
+                houseCell.candidates[digit] = 0;
+              }
+            });
+          }
+        }
+      });
+    }
+  }
+  
   public findHiddenSingles(): Cell[] {
     this.updatePencilMarks();
     const result: Cell[] = [];
@@ -274,6 +320,12 @@ export default class Sudoku {
       result += '\n';
     }
 
+    for (let row = 0; row < 9; ++row) {
+      for (let col = 0; col < 9; ++col) {
+        result += `${row}:${col}:${sudoku.rowModel[row][col].val} = ${sudoku.rowModel[row][col].candidates}\n`;
+      }
+    }
+
     return result;
   }
 }
@@ -282,4 +334,5 @@ let sudoku: Sudoku;
 document.addEventListener('DOMContentLoaded', event => {
   sudoku = new Sudoku();
 });
+
 

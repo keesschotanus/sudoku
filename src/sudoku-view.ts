@@ -12,6 +12,7 @@ export default class SudokuView {
     document.getElementById('nakedSinglesButton')?.addEventListener('click', this.nakedSingles);
     document.getElementById('nakedDoublesButton')?.addEventListener('click', this.nakedDoubles);
     document.getElementById('hiddenSinglesButton')?.addEventListener('click', this.hiddenSingles);
+    document.getElementById('pointingValuesButton')?.addEventListener('click', this.pointingValues);
   }
 
   public static idFromRowCol(row: number, col: number): string {
@@ -215,6 +216,13 @@ export default class SudokuView {
       let viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
       viewCell.classList.add('hidden-single');
       viewCell.setAttribute('title', 'Hidden single, can only contain a ' + modelCell.digit);
+    });
+  };
+
+  pointingValues = (event: MouseEvent) => {
+    const pointingValues = this.model.findPointingValues();
+    pointingValues.forEach((modelCell: Cell) => {
+      ;
     });
   };
 

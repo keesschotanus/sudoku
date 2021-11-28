@@ -44,6 +44,14 @@ export default class Cell {
     return result;
   }
   
+  /**
+   * Determines if this cell is in the set of supplied cells.
+   * @param set The set of cells to check.
+   */
+  inSet(set: Cell[]): boolean {
+    return set.find(other => this.row === other.row && this.col === other.col) !== undefined;
+  }
+
   /* 
    * Creates a String representation of this Sudoku cell. 
    * @return a String representation of this Sudoku cell. 
