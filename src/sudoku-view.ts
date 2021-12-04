@@ -12,6 +12,7 @@ export default class SudokuView {
     document.getElementById('nakedSinglesButton')?.addEventListener('click', this.nakedSingles);
     document.getElementById('nakedDoublesButton')?.addEventListener('click', this.nakedDoubles);
     document.getElementById('hiddenSinglesButton')?.addEventListener('click', this.hiddenSingles);
+    document.getElementById('hiddenDoublesButton')?.addEventListener('click', this.hiddenDoubles);
     document.getElementById('pointingValuesButton')?.addEventListener('click', this.pointingValues);
   }
 
@@ -216,6 +217,15 @@ export default class SudokuView {
       let viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
       viewCell.classList.add('hidden-single');
       viewCell.setAttribute('title', 'Hidden single, can only contain a ' + modelCell.digit);
+    });
+  };
+
+  hiddenDoubles = (event: MouseEvent) => {
+    const hiddenDoubles = this.model.findHiddenValues(2);
+    hiddenDoubles.forEach((modelCell: Cell) => {
+      let viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
+      viewCell.classList.add('hidden-double');
+      viewCell.setAttribute('title', 'Hidden double, can only contain' + modelCell.digit);
     });
   };
 

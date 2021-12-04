@@ -1,5 +1,6 @@
 import Cell from './cell.js';
 import SudokuView from './sudoku-view.js';
+import Combination from './math/combination.js';
 
 export type InvalidCell = { cell: Cell, house: string, digit: number };
 
@@ -303,6 +304,44 @@ export default class Sudoku {
       }
 
     }
+
+    return result;
+  }
+
+  public findHiddenValues(size: number): Cell[] {
+    this.updatePencilMarks();
+    const result: Cell[] = [];
+
+    this.forEachHouse((cells: Cell[], house) => {
+      const combinations = this.getCandidateCombinations(size, cells);
+      console.log('Combinations');
+      console.log(combinations);
+
+    });
+
+    return result;
+  }
+
+  /**
+   * Gets all the possible combinations of candidates of the supplied size,
+   * for each of the cells in the supplied house.
+   * @returns An array of size 9 (one element per cell).
+   *  Each element contains an array of all the possible combinations of candidates for a cell.
+   */
+  private getCandidateCombinations(size: number, house: Cell[]): Array<Array<number []>> {
+    const result = new Array<Array<number []>>();
+
+    house.forEach(cell => {
+      const combinations = new Array<number []>();
+      if (cell.val === 0 && cell.getNumberOfCandidates() >= size) {
+        const combination = new Combination<number>(cell.getCandidates(), size);
+        while (combination.hasNext()) {
+          combinations.push(combination.next());
+        }
+      }
+
+      result.push(combinations);
+    });
 
     return result;
   }
