@@ -1,6 +1,6 @@
 import Cell from './cell.js';
 import SudokuView from './sudoku-view.js';
-import Combination from './math/combination.js';
+import Combination from 'tslib/lib/math/combination.js';
 
 export type InvalidCell = { cell: Cell, house: string, digit: number };
 
