@@ -138,12 +138,12 @@ export default class Sudoku {
     */
   validate(): InvalidCell[] {
     const result: InvalidCell[] = [];
-    this.forEachHouse((cells: Cell[], house: string) => {
+    this.forEachHouse((cells: Cell[], houseName: string) => {
       for (let digit = 1; digit <= 9; ++digit) {
         let cellsWithThisDigit = cells.filter((cell: Cell) => cell.val == digit);
         if (cellsWithThisDigit.length > 1) {
           for (let cell of cellsWithThisDigit) {
-            result.push({cell, house, digit});
+            result.push({cell, house: houseName, digit});
           }
         }
       }
@@ -212,7 +212,7 @@ export default class Sudoku {
   public findNakedValues(size: number): Cell[] {
     this.updatePencilMarks();
     const result: Cell[] = [];
-    this.forEachHouse((cells: Cell[], house) => {
+    this.forEachHouse((cells: Cell[], houseName) => {
       cells.forEach((cell: Cell, index: number) => {
         if (cell.val === 0 && cell.getNumberOfCandidates() === size) {
           // See if remaining cells have the same content as the current cell
@@ -312,8 +312,21 @@ export default class Sudoku {
     this.updatePencilMarks();
     const result: Cell[] = [];
 
-    this.forEachHouse((cells: Cell[], house) => {
+    this.forEachHouse((cells: Cell[], houseName: string) => {
       const combinations = this.getCandidateCombinations(size, cells);
+      combinations.forEach((combinationsOfCell, cellIndex) => {
+        combinationsOfCell.forEach(combination => {
+          console.log('Combination: ' + combination);
+          // check if this combination is present in the other cells
+          cells.forEach((cell, cellIndex2) => {
+            if (cellIndex !== cellIndex2) {
+              
+            }
+          })
+
+        });
+      });
+
       console.log('Combinations');
       console.log(combinations);
 
