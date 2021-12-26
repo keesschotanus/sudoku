@@ -345,8 +345,10 @@ export default class Sudoku {
           if (cellsWithSameCombination.length + 1 === houseCellCombination.length) {
             cellsWithSameCombination.push(houseCell);
 
-            console.log('Before remove', cellsWithSameCombination, '#', houseCellCombination, '#');
-            this.removePencilMarks2(cellsWithSameCombination, houseCellCombination);
+            if (this.check(houseCells, cellsWithSameCombination, houseCellCombination)) {
+              console.log('Before remove', cellsWithSameCombination, '#', houseCellCombination, '#');
+              this.removePencilMarks2(cellsWithSameCombination, houseCellCombination);
+            }
           }
         });
       }
@@ -377,6 +379,20 @@ export default class Sudoku {
     for (let i = 0; result && i < combinationOne.length; ++i) {
       result = combinationOne[i] === combinationTwo[i];
     }
+
+    return result;
+  }
+
+  private check(houseCells: Cell[], cellsWithSameCombination: Cell[], combination: number[]): boolean {
+    let result = true;
+    const filteredHouseCells = houseCells.filter(houseCell => !cellsWithSameCombination.includes(houseCell));
+    filteredHouseCells.forEach(filteredHouseCell => {
+      combination.forEach(digit => {
+        if (filteredHouseCell.val === 0 && filteredHouseCell.candidates[digit] !== 0) {
+          result = false;
+        }
+      });
+    });
 
     return result;
   }
