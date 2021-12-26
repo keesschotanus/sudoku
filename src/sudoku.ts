@@ -1,6 +1,5 @@
 import Cell from './cell.js';
 import SudokuView from './sudoku-view.js';
-import Combination from './combination.js';
 export type InvalidCell = { cell: Cell, house: string, digit: number };
 
 /**
@@ -197,6 +196,23 @@ export default class Sudoku {
   }
 
   /**
+   * Removes all candidates from the supplied cells that are nt present in the supplied combination.
+   * @param cells Cells to remove pencil marks from.
+   * @param combination The combination of candidates that should not be removed.
+   */
+  removePencilMarks2(cells: Cell[], combination: number[]) {
+    cells.forEach(cell => {
+      cell.getCandidates().forEach(candidate => {
+        if (!combination.includes(candidate)) {
+          console.log('Removing candidate', candidate, 'from cell:', cell)
+          cell.candidates[candidate] = 0;
+          console.log('Removed candidate', candidate, 'from cell:', cell)
+        }
+      });
+    });
+  }
+
+  /**
    * Finds naked values in all the cells.
    * A naked single for example is a cell that only has one possible candidate.
    * To find naked singles you will have to supply a size of 1.
@@ -301,7 +317,6 @@ export default class Sudoku {
         cell.digit = digit;
         result.push(cell);
       }
-
     }
 
     return result;
@@ -311,49 +326,57 @@ export default class Sudoku {
     this.updatePencilMarks();
     const result: Cell[] = [];
 
-    this.forEachHouse((cells: Cell[], houseName: string) => {
-      const combinations = this.getCandidateCombinations(size, cells);
-      combinations.forEach((combinationsOfCell, cellIndex) => {
-        combinationsOfCell.forEach(combination => {
-          console.log('Combination: ' + combination);
-          // check if this combination is present in the other cells
-          cells.forEach((cell, cellIndex2) => {
-            if (cellIndex !== cellIndex2) {
-              
-            }
-          })
-
-        });
-      });
-
-      console.log('Combinations');
-      console.log(combinations);
-
+    this.forEachHouse((houseCells: Cell[], houseName: string) => {
+      this.findHiddenValuesInHouse(size, houseCells);
     });
 
     return result;
   }
 
-  /**
-   * Gets all the possible combinations of candidates of the supplied size,
-   * for each of the cells in the supplied house.
-   * @returns An array of size 9 (one element per cell).
-   *  Each element contains an array of all the possible combinations of candidates for a cell.
-   */
-  private getCandidateCombinations(size: number, house: Cell[]): Array<Array<number []>> {
-    const result = new Array<Array<number []>>();
+  private findHiddenValuesInHouse(size: number, houseCells: Cell[]): Cell[] {
+    const result: Cell[] = [];
 
-    house.forEach(cell => {
-      const combinations = new Array<number []>();
-      if (cell.val === 0 && cell.getNumberOfCandidates() >= size) {
-        const combination = new Combination<number>(cell.getCandidates(), size);
-        while (combination.hasNext()) {
-          combinations.push(combination.next());
-        }
+    houseCells.forEach((houseCell, houseCellIndex) => {
+      // Next if statement makes sure that we are not finding naked values
+      if (houseCell.getNumberOfCandidates() > size && houseCell.val === 0) {
+        const houseCellCombinations = houseCell.getCombinationsOfCandidates(size);
+        houseCellCombinations.forEach(houseCellCombination => {
+          const cellsWithSameCombination = this.findOtherCellsWithCombination(houseCellCombination, houseCells, houseCellIndex);
+          if (cellsWithSameCombination.length + 1 === houseCellCombination.length) {
+            cellsWithSameCombination.push(houseCell);
+
+            console.log('Before remove', cellsWithSameCombination, '#', houseCellCombination, '#');
+            this.removePencilMarks2(cellsWithSameCombination, houseCellCombination);
+          }
+        });
       }
-
-      result.push(combinations);
     });
+
+    return result;
+  }
+
+  private findOtherCellsWithCombination(combination: number[], houseCells: Cell[], cellIndex: number): Cell[] {
+    const result: Cell[] = [];
+
+    houseCells.forEach((cell, houseCellIndex) => {
+      if (cellIndex !== houseCellIndex && houseCells[houseCellIndex].val === 0) {
+        let cellCombinations = cell.getCombinationsOfCandidates(combination.length);
+        cellCombinations.forEach(cellCombination => {
+          if (this.areCombinationsEqual(combination, cellCombination)) {
+            result.push(houseCells[houseCellIndex]);
+          }
+        });
+      }
+    });
+
+    return result;
+  }
+
+  private areCombinationsEqual(combinationOne: number [], combinationTwo: number []): boolean {
+    let result = combinationOne.length === combinationTwo.length;
+    for (let i = 0; result && i < combinationOne.length; ++i) {
+      result = combinationOne[i] === combinationTwo[i];
+    }
 
     return result;
   }

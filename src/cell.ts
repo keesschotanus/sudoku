@@ -2,6 +2,8 @@
  * A single cell of a Sudoku puzzle.
  */
 
+import Combination from "./combination.js";
+
 export default class Cell {
 
   row: number;          // Zero based row
@@ -30,6 +32,28 @@ export default class Cell {
     return this.candidates.reduce((length: number, candidate: number): number => candidate === 0 ? length : length + 1);
   }
 
+  /**
+   * Gets all the possible combinations of candidates of the supplied size.
+   * @returns An array where each element contains a combination of candidates.
+   */
+  getCombinationsOfCandidates(size: number): Array<Array<number>> {
+    const result = new Array<Array<number>>();
+
+    if (this.val === 0 && this.getNumberOfCandidates() >= size) {
+      const combination = new Combination<number>(this.getCandidates(), size);
+      while (combination.hasNext()) {
+        result.push(combination.next());
+      }
+    };
+
+    return result;
+  }
+
+  /**
+   * Determines if this cell has the exact same candidates as the other cell.
+   * @param other Other cell to compare candidates against.
+   * @returns True when this cell and the other cell have the exact same candidates.
+   */
   hasSameCandidates(other: Cell): boolean {
     let thisCandidates = this.getCandidates();
     let otherCandidates = other.getCandidates();
