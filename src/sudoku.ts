@@ -28,17 +28,15 @@ export default class Sudoku {
   currentCol = 0;
 
   /**
-   * Creates a Sudoku object by creating the different models
-   * plus the view.
+   * Creates a Sudoku object by creating the different models plus the view.
    * The models are created to simply access all rows, columns and blocks.
-   * The block model for example puts each 3 x 3 block in its own row
-   * of 9 columns.
+   * The block model for example puts each 3 x 3 block in its own row of 9 columns.
    * If the first 3 x 3 block contains the following numbers:
    * 132
    * 465
    * 798
    * then blockModel[0] would contain: [1,3,2,4,6,5,7,9,8]
-   * I decided against using one model consisting of 27 rows
+   * I decided against using one model consisting of 27 rows,
    * where the first 9 rows would be columns, then 9 rows for columns
    * and finally 9 rows for blocks.
    * Mainly because processing all rows, columns and blocks can easily be combined.
@@ -84,7 +82,7 @@ export default class Sudoku {
 
   /**
    * Creates the block model.
-   * The first row in this model contains all cells of the first block.
+   * The first row in this model contains all cells of the first 3 x 3 block.
    */
    private createBlockModel() {
     for (let block = 0; block < 9; ++block) {
@@ -104,7 +102,8 @@ export default class Sudoku {
   }
 
   /**
-   * Processes all cells of the Sudoku, by row and column.
+   * Executes the supplied callback function for every cell.
+   * Cells are processed by row and within a row by column.
    * @param callback Function that accepts the cell to process.
    */
   public forEachCell(callback: (cell: Cell) => void): void {
@@ -117,7 +116,7 @@ export default class Sudoku {
   }
 
   /**
-   * Processes all cells of the Sudoku by house.
+   * Executes the supplied callback function for every house.
    * @param callback Function that accepts an arrays of all the cells in the house,
    *  and the description of the house ("row", "column", or "block".
    */
@@ -152,10 +151,10 @@ export default class Sudoku {
   /**
    * Resets all pencil marks to 1..9 for every cell.
    */
-  public resetPencilMarks() {
+  public resetPencilMarks(): void {
     this.forEachCell((cell: Cell) => {
-      for (let i = 0; i < 10; ++i) {
-        cell.candidates[i] = i;
+      for (let digit = 0; digit <= 9; ++digit) {
+        cell.candidates[digit] = digit;
       }
     });
   }
@@ -165,7 +164,7 @@ export default class Sudoku {
    * If so, then this value is removed as a possible candidate from every cell
    * in the same row, column and block.
    */
-  public updatePencilMarks() {
+  public updatePencilMarks(): void {
     this.forEachCell((cell: Cell) => {
       if (cell.val !== 0) {
         for (let i = 0; i < 9; ++i) {
@@ -178,35 +177,26 @@ export default class Sudoku {
   }
 
   /**
-   * Removes all the supplied candidates from all cells in the supplied house,
-   * except for the supplied cells that should not be touched.
-   * @param house The house with the cells to process.
-   * @param cellsToNotTouch The cells we should not touch.
-   *  This should be a subset of all the cells in the supplied house.
+   * Removes all the supplied candidates from all the supplied cells.
+   * @param cells The cells to remove candidates from.
    * @param candidates The candidate values that should be removed.
    */
-  private removePencilMarks(house: Cell[], cellsToNotTouch: Cell[], candidates: number[]) {
-    house.forEach((cell: Cell) => {
-      if (!cellsToNotTouch.includes(cell)) {
-        candidates.forEach((digit: number) => {
-          cell.candidates[digit] = 0;
-        });
-      }
+  private removePencilMarks(cells: Cell[], candidates: number[]): void {
+    cells.forEach((cell: Cell) => {
+      candidates.forEach((digit: number) => cell.candidates[digit] = 0);
     });
   }
 
   /**
-   * Removes all candidates from the supplied cells that are nt present in the supplied combination.
+   * Removes all candidates from the supplied cells that are not present in the supplied combination.
    * @param cells Cells to remove pencil marks from.
    * @param combination The combination of candidates that should not be removed.
    */
-  removePencilMarks2(cells: Cell[], combination: number[]) {
+  private removePencilMarksWhenNotInCombination(cells: Cell[], combination: number[]) {
     cells.forEach(cell => {
       cell.getCandidates().forEach(candidate => {
         if (!combination.includes(candidate)) {
-          console.log('Removing candidate', candidate, 'from cell:', cell)
           cell.candidates[candidate] = 0;
-          console.log('Removed candidate', candidate, 'from cell:', cell)
         }
       });
     });
@@ -239,7 +229,7 @@ export default class Sudoku {
             }
           }
           if (matchingCells.length === size) {
-            this.removePencilMarks(cells, matchingCells, matchingCells[0].getCandidates());
+            this.removePencilMarks(this.subtractSetsOfCells(cells, matchingCells), matchingCells[0].getCandidates());
             result.push(...matchingCells);
           }
         }
@@ -347,7 +337,7 @@ export default class Sudoku {
 
             if (this.check(houseCells, cellsWithSameCombination, houseCellCombination)) {
               console.log('Before remove', cellsWithSameCombination, '#', houseCellCombination, '#');
-              this.removePencilMarks2(cellsWithSameCombination, houseCellCombination);
+              this.removePencilMarksWhenNotInCombination(cellsWithSameCombination, houseCellCombination);
             }
           }
         });
@@ -381,6 +371,16 @@ export default class Sudoku {
     }
 
     return result;
+  }
+
+  /**
+   * Subtracts cellSetTwo from cellSetOne.
+   * @param cellSetOne Set of cells.
+   * @param cellSetTwo Set of cells.
+   * @returns The difference betwee cellSetOne and cellSetTwo.
+   */
+  private subtractSetsOfCells(cellSetOne: Cell[], cellSetTwo: Cell[]): Cell[] {
+    return cellSetOne.filter(cell => !cellSetTwo.includes(cell));
   }
 
   private check(houseCells: Cell[], cellsWithSameCombination: Cell[], combination: number[]): boolean {
