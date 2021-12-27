@@ -10,10 +10,15 @@ export default class Cell {
   col: number;          // Zero based column
   val: number;          // Value of the cell or zero when it has no value yet
   block: number;        // Zero based block number
-  candidates: number[]; // Possible candidate values this cell can have
-  digit: number;        // Used to communicate data 
+  candidates: number[]; // Possible candidate values this cell can have (pencil marks)
+  digit: number;        // Used to communicate data to the view
 
-  constructor(row: number, col: number) {
+  /**
+   * Creates a Sudoku cell from a row and column.
+   * @param row The zero based row number.
+   * @param col The zero based column number.
+   */
+  public constructor(row: number, col: number) {
     this.row = row;
     this.col = col;
 
@@ -24,12 +29,22 @@ export default class Cell {
     this.digit = 0;
   }
 
-  getCandidates(): number[] {
+  /**
+   * Gets all the possible candidates for this cell.
+   * When the possible candidates are 2,3, and 5 then candidates looks like this:
+   * [0,0,2,3,0,5,0,0,0,0], and the returned value is[2,3,5].
+   * @returns All possible candidates.
+   */
+  public getCandidates(): number[] {
     return this.candidates.filter((candidate) => candidate !== 0);
   }
 
-  getNumberOfCandidates(): number {
-    return this.candidates.reduce((length: number, candidate: number): number => candidate === 0 ? length : length + 1);
+  /**
+   * Gets the number of possible candidates.
+   * @returns The number of possible candidates.
+   */
+  public getNumberOfCandidates(): number {
+    return this.candidates.reduce((length, candidate): number => candidate === 0 ? length : length + 1);
   }
 
   /**
@@ -73,7 +88,7 @@ export default class Cell {
    * @param set The set of cells to check.
    */
   inSet(set: Cell[]): boolean {
-    return set.find(other => this.row === other.row && this.col === other.col) !== undefined;
+    return set.includes(this);
   }
 
   /* 
