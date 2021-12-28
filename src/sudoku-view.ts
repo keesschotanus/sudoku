@@ -4,7 +4,10 @@ import Sudoku, { InvalidCell } from "./sudoku";
 export default class SudokuView {
   private model: Sudoku;
 
-  private static cssClasses = ['error', 'hidden-single', 'hidden-double', 'naked-single', 'naked-double', 'pointing-value'];
+  /**
+   * All CSS classes related to the different solving algorithms.
+   */
+  private static cssClasses = ['hidden-single', 'hidden-double', 'naked-single', 'naked-double', 'pointing-value'];
 
   constructor(model: Sudoku) {
     this.model = model;
@@ -25,9 +28,9 @@ export default class SudokuView {
     return [+id.substr(2, 1), +id.substr(3, 1)];
   }
 
-  public static clearStyleFromAllCells() {
+  public static clearStyleFromAllCells(additionalCssClasses: string[] = []) {
     SudokuView.forEachCell((cell: HTMLDivElement) => {
-      cell.classList.remove(...this.cssClasses);
+      cell.classList.remove(...additionalCssClasses, ...this.cssClasses);
     });
   }
 
@@ -110,6 +113,7 @@ export default class SudokuView {
         cell.innerText = '' + event.key;
         this.model.rowModel[this.model.currentRow][this.model.currentCol].val = +event.key;
         this.model.resetPencilMarks();
+        this.validate();
         break;
       case '1':
       case '2':
@@ -126,6 +130,7 @@ export default class SudokuView {
         if (this.model.rowModel[this.model.currentRow][this.model.currentCol].val !== +event.key) {
           this.model.resetPencilMarks();
         }
+        this.validate();
         break;
       case 'ArrowLeft':
         this.selectCell(this.model.currentRow, this.model.currentCol === 0 ? 8 : this.model.currentCol - 1);
@@ -185,11 +190,13 @@ export default class SudokuView {
     viewCell.innerText = '' + val;
     viewCell.classList.remove('hidden');
     this.model.rowModel[row][col].val = val;
-    this.validate();
-}
+  }
 
-  validate = (event?: MouseEvent) => {
-    SudokuView.clearStyleFromAllCells();
+  private validate():void {
+    SudokuView.clearStyleFromAllCells(['error']);
+    SudokuView.forEachCell((cell: HTMLDivElement) => {
+      cell.removeAttribute('title');
+    });
     const invalidCells = this.model.validate();
     invalidCells.forEach((invalidCell: InvalidCell) => {
       const sudokuCellElement = document.getElementById(SudokuView.idFromRowCol(invalidCell.cell.row, invalidCell.cell.col)) as HTMLDivElement;
