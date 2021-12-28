@@ -4,11 +4,12 @@ import Sudoku, { InvalidCell } from "./sudoku";
 export default class SudokuView {
   private model: Sudoku;
 
+  private static cssClasses = ['error', 'hidden-single', 'hidden-double', 'naked-single', 'naked-double', 'pointing-value'];
+
   constructor(model: Sudoku) {
     this.model = model;
     document.addEventListener('keydown', this.onKey);
     document.getElementById('exampleButton')?.addEventListener('click', this.example);
-    document.getElementById('validateButton')?.addEventListener('click', this.validate);
     document.getElementById('nakedSinglesButton')?.addEventListener('click', this.nakedSingles);
     document.getElementById('nakedDoublesButton')?.addEventListener('click', this.nakedDoubles);
     document.getElementById('hiddenSinglesButton')?.addEventListener('click', this.hiddenSingles);
@@ -26,7 +27,7 @@ export default class SudokuView {
 
   public static clearStyleFromAllCells() {
     SudokuView.forEachCell((cell: HTMLDivElement) => {
-      cell.classList.remove('error', 'selected', "naked-singles");
+      cell.classList.remove(...this.cssClasses);
     });
   }
 
@@ -72,9 +73,10 @@ export default class SudokuView {
     sudokuContainer.appendChild(divBlock);
   }
 
-  public selectCell(currentlySelectedCell: HTMLDivElement, row: number, col: number): void {
+  public selectCell(row: number, col: number): void {
     // Deselect the current cell
-    currentlySelectedCell.classList.remove('selected');
+    const currentCell = document.getElementById(SudokuView.idFromRowCol(this.model.currentRow, this.model.currentCol)) as HTMLDivElement;
+    currentCell.classList.remove('selected');
 
     // Select the new cell
     document.getElementById(SudokuView.idFromRowCol(row, col))?.classList.add('selected');
@@ -85,12 +87,15 @@ export default class SudokuView {
   }
 
   private onCellClick = (event: MouseEvent) => {
-    const target = event.target as HTMLDivElement;
-    let id = target.getAttribute('id') as string;
-    [this.model.currentRow, this.model.currentCol] = SudokuView.rowColFromId(id);
+    // Deselect the current cell
+    const currentCellDiv = document.getElementById(SudokuView.idFromRowCol(this.model.currentRow, this.model.currentCol)) as HTMLDivElement;
+    currentCellDiv.classList.remove('selected');
 
-    SudokuView.clearStyleFromAllCells();
-    target.classList.add('selected');
+    // Select the new cell
+    const newCellDiv =  event.target as HTMLDivElement;
+    newCellDiv.classList.add('selected');
+    let id = newCellDiv.getAttribute('id') as string;
+    [this.model.currentRow, this.model.currentCol] = SudokuView.rowColFromId(id);
   }
 
   onKey = (event: KeyboardEvent) => {
@@ -116,23 +121,23 @@ export default class SudokuView {
       case '8':
       case '9':
         cell.innerText = '' + event.key;
-        cell.classList.remove('hidden', 'hidden-single', 'hidden-double', 'naked-single', 'naked-double');
+        cell.classList.remove('hidden', ...SudokuView.cssClasses);
         this.model.rowModel[this.model.currentRow][this.model.currentCol].val = +event.key;
         if (this.model.rowModel[this.model.currentRow][this.model.currentCol].val !== +event.key) {
           this.model.resetPencilMarks();
         }
         break;
       case 'ArrowLeft':
-        this.selectCell(cell, this.model.currentRow, this.model.currentCol === 0 ? 8 : this.model.currentCol - 1);
+        this.selectCell(this.model.currentRow, this.model.currentCol === 0 ? 8 : this.model.currentCol - 1);
         break;
       case 'ArrowRight':
-        this.selectCell(cell, this.model.currentRow, this.model.currentCol === 8 ? 0 : this.model.currentCol + 1);
+        this.selectCell(this.model.currentRow, this.model.currentCol === 8 ? 0 : this.model.currentCol + 1);
         break;
       case 'ArrowUp':
-        this.selectCell(cell, this.model.currentRow === 0 ? 8 : this.model.currentRow - 1, this.model.currentCol);
+        this.selectCell(this.model.currentRow === 0 ? 8 : this.model.currentRow - 1, this.model.currentCol);
         break;
       case 'ArrowDown':
-        this.selectCell(cell, this.model.currentRow === 8 ? 0 : this.model.currentRow + 1, this.model.currentCol);
+        this.selectCell(this.model.currentRow === 8 ? 0 : this.model.currentRow + 1, this.model.currentCol);
         break;
     }
 
@@ -180,9 +185,11 @@ export default class SudokuView {
     viewCell.innerText = '' + val;
     viewCell.classList.remove('hidden');
     this.model.rowModel[row][col].val = val;
+    this.validate();
 }
 
-  validate = (event: MouseEvent) => {
+  validate = (event?: MouseEvent) => {
+    SudokuView.clearStyleFromAllCells();
     const invalidCells = this.model.validate();
     invalidCells.forEach((invalidCell: InvalidCell) => {
       const sudokuCellElement = document.getElementById(SudokuView.idFromRowCol(invalidCell.cell.row, invalidCell.cell.col)) as HTMLDivElement;
@@ -192,6 +199,7 @@ export default class SudokuView {
   };
 
   nakedSingles = (event: MouseEvent) => {
+    SudokuView.clearStyleFromAllCells();
     const nakedCells = this.model.findNakedValues(1);
     nakedCells.forEach((modelCell: Cell) => {
       let viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
@@ -202,6 +210,7 @@ export default class SudokuView {
   };
 
   nakedDoubles = (event: MouseEvent) => {
+    SudokuView.clearStyleFromAllCells();
     const nakedCells = this.model.findNakedValues(2);
     nakedCells.forEach((modelCell: Cell) => {
       let viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
@@ -212,6 +221,7 @@ export default class SudokuView {
   };
 
   hiddenSingles = (event: MouseEvent) => {
+    SudokuView.clearStyleFromAllCells();
     const hiddenSingles = this.model.findHiddenSingles();
     hiddenSingles.forEach((modelCell: Cell) => {
       let viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
@@ -221,6 +231,7 @@ export default class SudokuView {
   };
 
   hiddenDoubles = (event: MouseEvent) => {
+    SudokuView.clearStyleFromAllCells();
     const hiddenDoubles = this.model.findHiddenValues(2);
     hiddenDoubles.forEach((modelCell: Cell) => {
       let viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
@@ -230,6 +241,7 @@ export default class SudokuView {
   };
 
   pointingValues = (event: MouseEvent) => {
+    SudokuView.clearStyleFromAllCells();
     const pointingValues = this.model.findPointingValues();
     pointingValues.forEach((modelCell: Cell) => {
       ;

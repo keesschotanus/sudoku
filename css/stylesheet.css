@@ -51,12 +51,24 @@ h1 {
     background-color: red;
 }
 
-.sudoku-cell.naked-single,.sudoku-cell.hidden-single {
+.sudoku-cell.naked-single {
     background-color: aqua;
 }
 
+.sudoku-cell.hidden-single {
+    background-color: blue;    
+}
+
 .sudoku-cell.naked-double {
+    background-color:violet;
+}
+
+.sudoku-cell.hidden-double {
     background-color: blueviolet;
+}
+
+.sudoku-cell.pointing-value {
+    background-color: darkgoldenrod;
 }
 
 .sudoku-cell-middle-row {
