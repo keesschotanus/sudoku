@@ -285,39 +285,12 @@ export default class Sudoku {
     }
   }
   
-  public findHiddenSingles(): Cell[] {
-    this.updatePencilMarks();
-    const result: Cell[] = [];
-
-    for (let i = 0; i < 9; ++i) {
-      result.push(...this.findHiddenSinglesForCells(this.rowModel[i]));
-      result.push(...this.findHiddenSinglesForCells(this.colModel[i]));
-      result.push(...this.findHiddenSinglesForCells(this.blockModel[i]));
-    }
-  
-    return result;
-  }
-
-  private findHiddenSinglesForCells(cells: Cell[]): Cell[] {
-    const result: Cell[] = [];
-    for (let digit = 1; digit <= 9; ++digit) {
-      const hiddenSingles = cells.filter((cell: Cell) => cell.val === 0 && cell.candidates[digit] === digit);
-      if (hiddenSingles.length == 1) {
-        const cell = hiddenSingles[0];
-        cell.digit = digit;
-        result.push(cell);
-      }
-    }
-
-    return result;
-  }
-
   public findHiddenValues(size: number): Cell[] {
     this.updatePencilMarks();
     const result: Cell[] = [];
 
     this.forEachHouse((houseCells: Cell[], houseName: string) => {
-      this.findHiddenValuesInHouse(size, houseCells);
+      result.push(...this.findHiddenValuesInHouse(size, houseCells));
     });
 
     return result;
@@ -334,10 +307,10 @@ export default class Sudoku {
           const cellsWithSameCombination = this.findOtherCellsWithCombination(houseCellCombination, houseCells, houseCellIndex);
           if (cellsWithSameCombination.length + 1 === houseCellCombination.length) {
             cellsWithSameCombination.push(houseCell);
-
             if (this.check(houseCells, cellsWithSameCombination, houseCellCombination)) {
-              console.log('Before remove', cellsWithSameCombination, '#', houseCellCombination, '#');
               this.removePencilMarksWhenNotInCombination(cellsWithSameCombination, houseCellCombination);
+              cellsWithSameCombination.forEach(cellWithSameCombination => cellWithSameCombination.digits = houseCellCombination.toString());
+              result.push(...cellsWithSameCombination);
             }
           }
         });

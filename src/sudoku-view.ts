@@ -1,14 +1,22 @@
 import Cell from "./cell";
 import Sudoku, { InvalidCell } from "./sudoku";
 
+/**
+ * The Sudoku view
+ */
 export default class SudokuView {
   private model: Sudoku;
 
   /**
    * All CSS classes related to the different solving algorithms.
    */
-  private static cssClasses = ['hidden-single', 'hidden-double', 'naked-single', 'naked-double', 'pointing-value'];
+  private static cssClassesForSolvedCells = ['hidden-single', 'hidden-double', 'naked-single', 'naked-double', 'pointing-value'];
 
+  /**
+   * Creates this view from the supplied model.
+   * Adds all the event listeners.
+   * @param model The Sudoku model.
+   */
   constructor(model: Sudoku) {
     this.model = model;
     document.addEventListener('keydown', this.onKey);
@@ -20,20 +28,32 @@ export default class SudokuView {
     document.getElementById('pointingValuesButton')?.addEventListener('click', this.pointingValues);
   }
 
+  /**
+   * Converts the supplied row and col to a string that represents the value of the HTML id attribute.
+   * This is the opposite of {@link #rowColFromId}.
+   * @param row The zero based row number.
+   * @param col The zero based column number.
+   * @returns The value of the HTML id attribute corresponding to the supplied row and col.
+   *  For row #2 and col #3, 'id23' is returned.
+   */
   public static idFromRowCol(row: number, col: number): string {
     return `id${row}${col}`
   }
 
+  /**
+   * Converts the id of a cell to a row and column.
+   * This is the opposite of {@link #idFromRowCol}.
+   * @param id id of a Sudoku cell.
+   * @returns zero based row and column number.
+   */
   public static rowColFromId(id: string): [number, number] {
     return [+id.substr(2, 1), +id.substr(3, 1)];
   }
 
-  public static clearStyleFromAllCells(additionalCssClasses: string[] = []) {
-    SudokuView.forEachCell((cell: HTMLDivElement) => {
-      cell.classList.remove(...additionalCssClasses, ...this.cssClasses);
-    });
-  }
-
+  /**
+   * Executes the supplied callback function for every Sudoku cell.
+   * @param callback Function that accepts a single Sudoku cell.
+   */
   public static forEachCell(callback: (cell: HTMLDivElement) => void): void {
     for (let row = 0; row < 9; ++row) {
       for (let col = 0; col < 9; ++col) {
@@ -43,6 +63,19 @@ export default class SudokuView {
     }
   }
 
+  /**
+   * Clears all the supplied css classes from all cells.
+   * @param cssClasses Classes to clear.
+   */
+  public static clearClassesFromAllCells(...cssClasses: string[]) {
+    SudokuView.forEachCell((cell: HTMLDivElement) => {
+      cell.classList.remove(...cssClasses);
+    });
+  }
+
+  /**
+   * Renders (displays) the entire Sudoku.
+   */
   public renderSudoku() {
     for (let blockRow = 0; blockRow < 3; ++blockRow) {
       for (let blockCol = 0; blockCol < 3; ++blockCol) {
@@ -51,8 +84,13 @@ export default class SudokuView {
     }
   }
 
+  /**
+   * Renders a single 3x3 block.
+   * @param blockRow Row 0, 1 or 2.
+   * @param blockCol Col 0, 1 or 2.
+   */
   private renderBlock(blockRow: number, blockCol: number) {
-    let divBlock = document.createElement('div');
+    const divBlock = document.createElement('div');
     divBlock.className = 'sudoku-block';
     divBlock.className = blockRow == 1 ? divBlock.className + ' sudoku-block-middle-row' : divBlock.className;
     divBlock.className = blockCol == 1 ? divBlock.className + ' sudoku-block-middle-col' : divBlock.className;
@@ -72,23 +110,15 @@ export default class SudokuView {
       }
     }
 
-    let sudokuContainer: HTMLDivElement = document.getElementById("sudoku") as HTMLDivElement;
+    const sudokuContainer: HTMLDivElement = document.getElementById("sudoku") as HTMLDivElement;
     sudokuContainer.appendChild(divBlock);
   }
 
-  public selectCell(row: number, col: number): void {
-    // Deselect the current cell
-    const currentCell = document.getElementById(SudokuView.idFromRowCol(this.model.currentRow, this.model.currentCol)) as HTMLDivElement;
-    currentCell.classList.remove('selected');
-
-    // Select the new cell
-    document.getElementById(SudokuView.idFromRowCol(row, col))?.classList.add('selected');
-
-    // Update the model
-    this.model.currentRow = row;
-    this.model.currentCol = col;
-  }
-
+  /**
+   * Process clicking a cell with the mouse, 
+   * by deselecting the current cell and then selecting the new cell.
+   * @param event MouseEvent.
+   */
   private onCellClick = (event: MouseEvent) => {
     // Deselect the current cell
     const currentCellDiv = document.getElementById(SudokuView.idFromRowCol(this.model.currentRow, this.model.currentCol)) as HTMLDivElement;
@@ -97,12 +127,19 @@ export default class SudokuView {
     // Select the new cell
     const newCellDiv =  event.target as HTMLDivElement;
     newCellDiv.classList.add('selected');
-    let id = newCellDiv.getAttribute('id') as string;
+    const id = newCellDiv.getAttribute('id') as string;
     [this.model.currentRow, this.model.currentCol] = SudokuView.rowColFromId(id);
   }
 
+  /**
+   * Processes all keyboard events.
+   * - Entering a number from 0 to 9 in a cell
+   * - Using an arrow key to select a cell
+   * - backtick to display the Sudoku model in the console.
+   * @param event KeyboardEvent.
+   */
   onKey = (event: KeyboardEvent) => {
-    let cell = document.getElementById(SudokuView.idFromRowCol(this.model.currentRow, this.model.currentCol)) as HTMLDivElement;
+    const cell = document.getElementById(SudokuView.idFromRowCol(this.model.currentRow, this.model.currentCol)) as HTMLDivElement;
 
     switch (event.key) {
       case '`':
@@ -125,7 +162,7 @@ export default class SudokuView {
       case '8':
       case '9':
         cell.innerText = '' + event.key;
-        cell.classList.remove('hidden', ...SudokuView.cssClasses);
+        cell.classList.remove('hidden', ...SudokuView.cssClassesForSolvedCells);
         this.model.rowModel[this.model.currentRow][this.model.currentCol].val = +event.key;
         if (this.model.rowModel[this.model.currentRow][this.model.currentCol].val !== +event.key) {
           this.model.resetPencilMarks();
@@ -148,55 +185,58 @@ export default class SudokuView {
 
   }
 
-  example = (event: MouseEvent) => {
-    this.setValue(0,3,6);
-    this.setValue(0,4,9);
-    this.setValue(0,7,1);
+  /**
+   * Selects the cell identified by the supplied row and col.
+   * @param row The zero based row number.
+   * @param col The zero based column number.
+   */
+  private selectCell(row: number, col: number): void {
+    // Deselect the current cell
+    const currentCell = document.getElementById(SudokuView.idFromRowCol(this.model.currentRow, this.model.currentCol)) as HTMLDivElement;
+    currentCell.classList.remove('selected');
 
-    this.setValue(1,4,1);
-    this.setValue(1,6,4);
-    this.setValue(1,8,5);
+    // Select the new cell
+    document.getElementById(SudokuView.idFromRowCol(row, col))?.classList.add('selected');
 
+    // Update the model
+    this.model.currentRow = row;
+    this.model.currentCol = col;
+  }
+
+  /**
+   * Creates an example Sudoku.
+   * @param event MouseEvent.
+   */
+  private example = (event: MouseEvent) => {
+    this.setValue(0,3,6); this.setValue(0,4,9); this.setValue(0,7,1);
+    this.setValue(1,4,1); this.setValue(1,6,4); this.setValue(1,8,5);
     this.setValue(2,3,3);
-
-    this.setValue(3,4,3);
-    this.setValue(3,7,2);
-    this.setValue(3,8,7);
-
-    this.setValue(4,0,3);
-    this.setValue(4,2,6);
-    this.setValue(4,4,2);
-    this.setValue(4,6,5);
-
-    this.setValue(5,1,7);
-    this.setValue(5,2,5);
-    this.setValue(5,3,1);
-    this.setValue(5,7,6);
-    this.setValue(5,8,3);
-
-    this.setValue(6,2,9);
-    this.setValue(6,3,7);
-
-    this.setValue(7,1,2);
-
-    this.setValue(8,0,7);
-    this.setValue(8,1,1);
-    this.setValue(8,2,8);
-    this.setValue(8,3,2);
+    this.setValue(3,4,3); this.setValue(3,7,2); this.setValue(3,8,7);
+    this.setValue(4,0,3); this.setValue(4,2,6); this.setValue(4,4,2); this.setValue(4,6,5);
+    this.setValue(5,1,7); this.setValue(5,2,5); this.setValue(5,3,1); this.setValue(5,7,6); this.setValue(5,8,3);
+    this.setValue(6,2,9); this.setValue(6,3,7); this.setValue(7,1,2);
+    this.setValue(8,0,7); this.setValue(8,1,1); this.setValue(8,2,8); this.setValue(8,3,2);
   };
 
+  /**
+   * Sets the supplied value in the cell identified by the supplied row and col.
+   * @param row Zero based row number.
+   * @param col Zero based column number.
+   * @param val The value to set.
+   */
   private setValue(row: number, col: number, val: number) {
-    let viewCell = document.getElementById(SudokuView.idFromRowCol(row, col)) as HTMLDivElement;
+    const viewCell = document.getElementById(SudokuView.idFromRowCol(row, col)) as HTMLDivElement;
     viewCell.innerText = '' + val;
     viewCell.classList.remove('hidden');
     this.model.rowModel[row][col].val = val;
   }
 
+  /**
+   * Validates the Sudoku.
+   * Invalid cells get a class named 'error'.
+   */
   private validate():void {
-    SudokuView.clearStyleFromAllCells(['error']);
-    SudokuView.forEachCell((cell: HTMLDivElement) => {
-      cell.removeAttribute('title');
-    });
+    SudokuView.clearClassesFromAllCells('error');
     const invalidCells = this.model.validate();
     invalidCells.forEach((invalidCell: InvalidCell) => {
       const sudokuCellElement = document.getElementById(SudokuView.idFromRowCol(invalidCell.cell.row, invalidCell.cell.col)) as HTMLDivElement;
@@ -205,53 +245,80 @@ export default class SudokuView {
     });
   };
 
+  /**
+   * Locates all the naked singles.
+   * Naked single cells get a class named 'naked-single'.
+   * @param event MouseEvent.
+   */
   nakedSingles = (event: MouseEvent) => {
-    SudokuView.clearStyleFromAllCells();
+    SudokuView.clearClassesFromAllCells(...SudokuView.cssClassesForSolvedCells);
     const nakedCells = this.model.findNakedValues(1);
     nakedCells.forEach((modelCell: Cell) => {
-      let viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
+      const viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
       const digit = modelCell.getCandidates()[0];
       viewCell.classList.add('naked-single');
       viewCell.setAttribute('title', 'Naked single, can only contain a ' + digit);
     });
   };
 
-  nakedDoubles = (event: MouseEvent) => {
-    SudokuView.clearStyleFromAllCells();
+  /**
+   * Locates all the naked doubles.
+   * Naked double cells get a class named 'naked-double'.
+   * @param event MouseEvent.
+   */
+   nakedDoubles = (event: MouseEvent) => {
+    SudokuView.clearClassesFromAllCells(...SudokuView.cssClassesForSolvedCells);
     const nakedCells = this.model.findNakedValues(2);
     nakedCells.forEach((modelCell: Cell) => {
-      let viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
+      const viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
       const digits = modelCell.getCandidates();
       viewCell.classList.add('naked-double');
       viewCell.setAttribute('title', 'Naked double, can only contain the digits ' + digits);
     });
   };
 
-  hiddenSingles = (event: MouseEvent) => {
-    SudokuView.clearStyleFromAllCells();
-    const hiddenSingles = this.model.findHiddenSingles();
+  /**
+   * Locates all the hidden singles.
+   * Hidden single cells get a class named 'hidden-single'.
+   * @param event MouseEvent.
+   */
+   hiddenSingles = (event: MouseEvent) => {
+    SudokuView.clearClassesFromAllCells(...SudokuView.cssClassesForSolvedCells);
+    const hiddenSingles = this.model.findHiddenValues(1);
     hiddenSingles.forEach((modelCell: Cell) => {
-      let viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
+      const viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
       viewCell.classList.add('hidden-single');
-      viewCell.setAttribute('title', 'Hidden single, can only contain a ' + modelCell.digit);
+      viewCell.setAttribute('title', 'Hidden single, can only contain a ' + modelCell.digits);
     });
   };
 
-  hiddenDoubles = (event: MouseEvent) => {
-    SudokuView.clearStyleFromAllCells();
+  /**
+   * Locates all the hidden doubles.
+   * Hidden double cells get a class named 'hidden-double'.
+   * @param event MouseEvent.
+   */
+   hiddenDoubles = (event: MouseEvent) => {
+    SudokuView.clearClassesFromAllCells(...SudokuView.cssClassesForSolvedCells);
     const hiddenDoubles = this.model.findHiddenValues(2);
     hiddenDoubles.forEach((modelCell: Cell) => {
-      let viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
+      const viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
       viewCell.classList.add('hidden-double');
-      viewCell.setAttribute('title', 'Hidden double, can only contain' + modelCell.digit);
+      viewCell.setAttribute('title', 'Hidden double, can only contain: ' + modelCell.digits);
     });
   };
 
-  pointingValues = (event: MouseEvent) => {
-    SudokuView.clearStyleFromAllCells();
+  /**
+   * Locates all the pointing values.
+   * Point value cells get a class named 'pointing-value'.
+   * @param event MouseEvent.
+   */
+   pointingValues = (event: MouseEvent) => {
+    SudokuView.clearClassesFromAllCells(...SudokuView.cssClassesForSolvedCells);
     const pointingValues = this.model.findPointingValues();
     pointingValues.forEach((modelCell: Cell) => {
-      ;
+      const viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
+      viewCell.classList.add('pointing-value');
+      viewCell.setAttribute('title', 'Pointing value, can only contain: ' + modelCell.digits);
     });
   };
 

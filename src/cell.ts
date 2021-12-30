@@ -11,7 +11,7 @@ export default class Cell {
   val: number;          // Value of the cell or zero when it has no value yet
   block: number;        // Zero based block number
   candidates: number[]; // Possible candidate values this cell can have (pencil marks)
-  digit: number;        // Used to communicate data to the view
+  digits: string;       // Used to communicate data to the view
 
   /**
    * Creates a Sudoku cell from a row and column.
@@ -26,7 +26,7 @@ export default class Cell {
     this.block = Math.floor(this.row / 3) * 3 + Math.floor(this.col / 3);
     this.candidates = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-    this.digit = 0;
+    this.digits = '';
   }
 
   /**
