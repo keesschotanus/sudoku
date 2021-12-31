@@ -270,10 +270,10 @@ export default class SudokuView {
    */
   private nakedSingles = (event: MouseEvent) => {
     SudokuView.clearClassesFromAllCells(...SudokuView.cssClassesForSolvedCells);
-    const nakedCells = this.model.findNakedValues(1);
-    nakedCells.forEach((modelCell: Cell) => {
-      const viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
-      const digit = modelCell.getCandidates()[0];
+    const nakedSingleCells = this.model.findNakedValues(1);
+    nakedSingleCells.forEach((nakedSingleCell: Cell) => {
+      const viewCell = document.getElementById(SudokuView.idFromRowCol(nakedSingleCell.row, nakedSingleCell.col)) as HTMLDivElement;
+      const digit = nakedSingleCell.getCandidates()[0];
       viewCell.classList.add('naked-single');
       viewCell.setAttribute('title', 'Naked single, can only contain a ' + digit);
     });
@@ -286,12 +286,11 @@ export default class SudokuView {
    */
   private nakedDoubles = (event: MouseEvent) => {
     SudokuView.clearClassesFromAllCells(...SudokuView.cssClassesForSolvedCells);
-    const nakedCells = this.model.findNakedValues(2);
-    nakedCells.forEach((modelCell: Cell) => {
-      const viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
-      const digits = modelCell.getCandidates();
+    const nakedDoubleCells = this.model.findNakedValues(2);
+    nakedDoubleCells.forEach((nakedDoubleCell: Cell) => {
+      const viewCell = document.getElementById(SudokuView.idFromRowCol(nakedDoubleCell.row, nakedDoubleCell.col)) as HTMLDivElement;
       viewCell.classList.add('naked-double');
-      viewCell.setAttribute('title', 'Naked double, can only contain the digits ' + digits);
+      viewCell.setAttribute('title', 'Naked double, can only contain the digits ' + nakedDoubleCell.getCandidates());
     });
   };
 
@@ -302,11 +301,11 @@ export default class SudokuView {
    */
   private hiddenSingles = (event: MouseEvent) => {
     SudokuView.clearClassesFromAllCells(...SudokuView.cssClassesForSolvedCells);
-    const hiddenSingles = this.model.findHiddenValues(1);
-    hiddenSingles.forEach((modelCell: Cell) => {
-      const viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
+    const hiddenSingleCells = this.model.findHiddenValues(1);
+    hiddenSingleCells.forEach((hiddenSingleCell: Cell) => {
+      const viewCell = document.getElementById(SudokuView.idFromRowCol(hiddenSingleCell.row, hiddenSingleCell.col)) as HTMLDivElement;
       viewCell.classList.add('hidden-single');
-      viewCell.setAttribute('title', 'Hidden single, can only contain a ' + modelCell.digits);
+      viewCell.setAttribute('title', 'Hidden single, can only contain a ' + hiddenSingleCell.digits);
     });
   };
 
@@ -317,11 +316,11 @@ export default class SudokuView {
    */
   private hiddenDoubles = (event: MouseEvent) => {
     SudokuView.clearClassesFromAllCells(...SudokuView.cssClassesForSolvedCells);
-    const hiddenDoubles = this.model.findHiddenValues(2);
-    hiddenDoubles.forEach((modelCell: Cell) => {
-      const viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
+    const hiddenDoubleCells = this.model.findHiddenValues(2);
+    hiddenDoubleCells.forEach((hiddenDoubleCell: Cell) => {
+      const viewCell = document.getElementById(SudokuView.idFromRowCol(hiddenDoubleCell.row, hiddenDoubleCell.col)) as HTMLDivElement;
       viewCell.classList.add('hidden-double');
-      viewCell.setAttribute('title', 'Hidden double, can only contain: ' + modelCell.digits);
+      viewCell.setAttribute('title', 'Hidden double, can only contain: ' + hiddenDoubleCell.digits);
     });
   };
 
@@ -332,11 +331,11 @@ export default class SudokuView {
    */
   private pointingValues = (event: MouseEvent) => {
     SudokuView.clearClassesFromAllCells(...SudokuView.cssClassesForSolvedCells);
-    const pointingValues = this.model.findPointingValues();
-    pointingValues.forEach((modelCell: Cell) => {
-      const viewCell = document.getElementById(SudokuView.idFromRowCol(modelCell.row, modelCell.col)) as HTMLDivElement;
+    const pointingValueCells = this.model.findPointingValues();
+    pointingValueCells.forEach((pointingValueCell: Cell) => {
+      const viewCell = document.getElementById(SudokuView.idFromRowCol(pointingValueCell.row, pointingValueCell.col)) as HTMLDivElement;
       viewCell.classList.add('pointing-value');
-      viewCell.setAttribute('title', 'Pointing value, can only contain: ' + modelCell.digits);
+      viewCell.setAttribute('title', 'Pointing value, can only contain: ' + pointingValueCell.digits);
     });
   };
 
