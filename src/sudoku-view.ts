@@ -257,7 +257,7 @@ export default class SudokuView {
     SudokuView.clearClassesFromAllCells('error');
     const invalidCells = this.model.validate();
     invalidCells.forEach((invalidCell: InvalidCell) => {
-      const sudokuCellElement = document.getElementById(SudokuView.idFromRowCol(invalidCell.cell.row, invalidCell.cell.col)) as HTMLDivElement;
+      const sudokuCellElement = document.getElementById(SudokuView.idFromRowCol(invalidCell.cell.getRow(), invalidCell.cell.getCol())) as HTMLDivElement;
       sudokuCellElement.classList.add('error');
       sudokuCellElement.setAttribute("title", `The cell in this ${invalidCell.house}, contains the duplicate digit: ${invalidCell.digit}`);
     });
@@ -272,11 +272,11 @@ export default class SudokuView {
     SudokuView.clearClassesFromAllCells(...SudokuView.cssClassesForSolvedCells);
     const nakedSingleCells = this.model.findNakedValues(1);
     nakedSingleCells.forEach((nakedSingleCell: Cell) => {
-      const viewCell = document.getElementById(SudokuView.idFromRowCol(nakedSingleCell.row, nakedSingleCell.col)) as HTMLDivElement;
+      const viewCell = document.getElementById(SudokuView.idFromRowCol(nakedSingleCell.getRow(), nakedSingleCell.getCol())) as HTMLDivElement;
       const digit = nakedSingleCell.getCandidates()[0];
       viewCell.classList.add('naked-single');
       viewCell.setAttribute('title', 'Naked single, can only contain a ' + digit);
-      this.setValue(nakedSingleCell.row, nakedSingleCell.col, digit);
+      this.setValue(nakedSingleCell.getRow(), nakedSingleCell.getCol(), digit);
     });
   };
 
@@ -289,9 +289,9 @@ export default class SudokuView {
     SudokuView.clearClassesFromAllCells(...SudokuView.cssClassesForSolvedCells);
     const nakedDoubleCells = this.model.findNakedValues(2);
     nakedDoubleCells.forEach((nakedDoubleCell: Cell) => {
-      const viewCell = document.getElementById(SudokuView.idFromRowCol(nakedDoubleCell.row, nakedDoubleCell.col)) as HTMLDivElement;
+      const viewCell = document.getElementById(SudokuView.idFromRowCol(nakedDoubleCell.getRow(), nakedDoubleCell.getCol())) as HTMLDivElement;
       viewCell.classList.add('naked-double');
-      viewCell.setAttribute('title', 'Naked double, can only contain the digits ' + nakedDoubleCell.digits);
+      viewCell.setAttribute('title', 'Naked double, can only contain the digits ' + nakedDoubleCell.getSolvedCandidates());
     });
   };
 
@@ -304,10 +304,10 @@ export default class SudokuView {
     SudokuView.clearClassesFromAllCells(...SudokuView.cssClassesForSolvedCells);
     const hiddenSingleCells = this.model.findHiddenValues(1);
     hiddenSingleCells.forEach((hiddenSingleCell: Cell) => {
-      const viewCell = document.getElementById(SudokuView.idFromRowCol(hiddenSingleCell.row, hiddenSingleCell.col)) as HTMLDivElement;
+      const viewCell = document.getElementById(SudokuView.idFromRowCol(hiddenSingleCell.getRow(), hiddenSingleCell.getCol())) as HTMLDivElement;
       viewCell.classList.add('hidden-single');
-      viewCell.setAttribute('title', 'Hidden single, can only contain a ' + hiddenSingleCell.digits);
-      this.setValue(hiddenSingleCell.row, hiddenSingleCell.col, Number(hiddenSingleCell.digits));
+      viewCell.setAttribute('title', 'Hidden single, can only contain a ' + hiddenSingleCell.getSolvedCandidates());
+      this.setValue(hiddenSingleCell.getRow(), hiddenSingleCell.getCol(), Number(hiddenSingleCell.getSolvedCandidates()));
     });
   };
 
@@ -320,9 +320,9 @@ export default class SudokuView {
     SudokuView.clearClassesFromAllCells(...SudokuView.cssClassesForSolvedCells);
     const hiddenDoubleCells = this.model.findHiddenValues(2);
     hiddenDoubleCells.forEach((hiddenDoubleCell: Cell) => {
-      const viewCell = document.getElementById(SudokuView.idFromRowCol(hiddenDoubleCell.row, hiddenDoubleCell.col)) as HTMLDivElement;
+      const viewCell = document.getElementById(SudokuView.idFromRowCol(hiddenDoubleCell.getRow(), hiddenDoubleCell.getCol())) as HTMLDivElement;
       viewCell.classList.add('hidden-double');
-      viewCell.setAttribute('title', 'Hidden double, can only contain: ' + hiddenDoubleCell.digits);
+      viewCell.setAttribute('title', 'Hidden double, can only contain: ' + hiddenDoubleCell.getSolvedCandidates());
     });
   };
 
@@ -335,9 +335,9 @@ export default class SudokuView {
     SudokuView.clearClassesFromAllCells(...SudokuView.cssClassesForSolvedCells);
     const pointingValueCells = this.model.findPointingValues();
     pointingValueCells.forEach((pointingValueCell: Cell) => {
-      const viewCell = document.getElementById(SudokuView.idFromRowCol(pointingValueCell.row, pointingValueCell.col)) as HTMLDivElement;
+      const viewCell = document.getElementById(SudokuView.idFromRowCol(pointingValueCell.getRow(), pointingValueCell.getCol())) as HTMLDivElement;
       viewCell.classList.add('pointing-value');
-      viewCell.setAttribute('title', 'Pointing value, can only contain: ' + pointingValueCell.digits);
+      viewCell.setAttribute('title', 'Pointing value, can only contain: ' + pointingValueCell.getSolvedCandidates());
     });
   };
 

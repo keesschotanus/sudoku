@@ -6,12 +6,12 @@ import Combination from "./combination.js";
 
 export default class Cell {
 
-  row: number;          // Zero based row
-  col: number;          // Zero based column
-  val: number;          // Value of the cell or zero when it has no value yet
-  block: number;        // Zero based block number
-  candidates: number[]; // Possible candidate values this cell can have (pencil marks)
-  digits: string;       // Used to communicate data to the view
+  private row: number;                // Zero based row
+  private col: number;                // Zero based column
+  private val: number;                // Value of the cell or zero when it has no value yet
+  private block: number;              // Zero based block number
+  private candidates: number[];       // Possible candidate values this cell can have (pencil marks)
+  private solvedCandidates: string;   // Used to communicate solved candidates data to the view
 
   /**
    * Creates a Sudoku cell from a row and column.
@@ -26,7 +26,35 @@ export default class Cell {
     this.block = Math.floor(this.row / 3) * 3 + Math.floor(this.col / 3);
     this.candidates = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-    this.digits = '';
+    this.solvedCandidates = '';
+  }
+
+  public getRow(): number {
+    return this.row;
+  }
+
+  public getCol(): number {
+    return this.col;
+  }
+
+  public getVal(): number {
+    return this.val;
+  }
+
+  public setVal(val: number): void {
+    this.val = val;
+  }
+
+  public getBlock(): number {
+    return this.block;
+  }
+
+  public getSolvedCandidates(): string {
+    return this.solvedCandidates;
+  }
+
+  public setSolvedCandidates(solvedCells: string) {
+    this.solvedCandidates = solvedCells;
   }
 
   /**
@@ -37,6 +65,30 @@ export default class Cell {
    */
   public getCandidates(): number[] {
     return this.candidates.filter((candidate) => candidate !== 0);
+  }
+
+  /**
+   * Clears a single candidate.
+   * @param digit The candidate digit to clear.
+   */
+  public clearCandidate(digit: number): void {
+    this.candidates[digit] = 0;
+  }
+
+  /**
+   * Sets the supplied digit is a possible candidate.
+   * @param digit The digit to set as a candidate.
+   */
+  public setCandidate(digit: number): void {
+    this.candidates[digit] = digit;
+  }
+
+  /**
+   * Determines if the supplied digit is a candidate digit for this cell.
+   * @returns True when the supplied digit is a candidate digit.
+   */
+  public isCandidate(digit: number): boolean {
+    return this.candidates[digit] === digit;
   }
 
   /**
@@ -51,7 +103,7 @@ export default class Cell {
    * Gets all the possible combinations of candidates of the supplied size.
    * @returns An array where each element contains a combination of candidates.
    */
-  getCombinationsOfCandidates(size: number): Array<Array<number>> {
+  public getCombinationsOfCandidates(size: number): Array<Array<number>> {
     const result = new Array<Array<number>>();
 
     if (this.val === 0 && this.getNumberOfCandidates() >= size) {
@@ -69,7 +121,7 @@ export default class Cell {
    * @param other Other cell to compare candidates against.
    * @returns True when this cell and the other cell have the exact same candidates.
    */
-  hasSameCandidates(other: Cell): boolean {
+  public hasSameCandidates(other: Cell): boolean {
     let thisCandidates = this.getCandidates();
     let otherCandidates = other.getCandidates();
 
@@ -84,10 +136,17 @@ export default class Cell {
   }
   
   /**
+   * Resets the possible candidates.
+   */
+  public resetCandidates(): void {
+    this.candidates = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  }
+
+  /**
    * Determines if this cell is in the set of supplied cells.
    * @param set The set of cells to check.
    */
-  inSet(set: Cell[]): boolean {
+  public inSet(set: Cell[]): boolean {
     return set.includes(this);
   }
 
@@ -95,7 +154,7 @@ export default class Cell {
    * Creates a String representation of this Sudoku cell. 
    * @return a String representation of this Sudoku cell. 
    */ 
-  toString() {
+  public toString() {
     return `[${this.row},${this.col}]`;
   }
     

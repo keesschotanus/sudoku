@@ -103,9 +103,9 @@ export default class Sudoku {
    */
   public reset(): void {
     this.forEachCell(cell => {
-      cell.val = 0;
-      cell.candidates = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-      cell.digits = '';
+      cell.setVal(0);
+      cell.resetCandidates();
+      cell.setSolvedCandidates('');
     });
   }
 
@@ -117,7 +117,7 @@ export default class Sudoku {
    * 
    */
   public getCellValue(row: number, col: number) {
-    return this.rowModel[row][col].val;
+    return this.rowModel[row][col].getVal();
   }
 
   /**
@@ -129,7 +129,7 @@ export default class Sudoku {
    * 
    */
   public setCellValue(row: number, col: number, val: number) {
-    this.rowModel[row][col].val = val;
+    this.rowModel[row][col].setVal(val);
   }
 
   /**
@@ -168,7 +168,7 @@ export default class Sudoku {
     const result: InvalidCell[] = [];
     this.forEachHouse((cells: Cell[], houseName: string) => {
       for (let digit = 1; digit <= 9; ++digit) {
-        let cellsWithThisDigit = cells.filter((cell: Cell) => cell.val == digit);
+        let cellsWithThisDigit = cells.filter((cell: Cell) => cell.getVal() === digit);
         if (cellsWithThisDigit.length > 1) {
           for (let cell of cellsWithThisDigit) {
             result.push({cell, house: houseName, digit});
@@ -185,7 +185,7 @@ export default class Sudoku {
   public resetPencilMarks(): void {
     this.forEachCell((cell: Cell) => {
       for (let digit = 0; digit <= 9; ++digit) {
-        cell.candidates[digit] = digit;
+        cell.setCandidate(digit);
       }
     });
   }
@@ -197,11 +197,11 @@ export default class Sudoku {
    */
   public updatePencilMarks(): void {
     this.forEachCell((cell: Cell) => {
-      if (cell.val !== 0) {
+      if (cell.getVal() !== 0) {
         for (let i = 0; i < 9; ++i) {
-          this.rowModel[cell.row][i].candidates[cell.val] = 0;
-          this.colModel[cell.col][i].candidates[cell.val] = 0;
-          this.blockModel[cell.block][i].candidates[cell.val] = 0;
+          this.rowModel[cell.getRow()][i].clearCandidate(cell.getVal());
+          this.colModel[cell.getCol()][i].clearCandidate(cell.getVal());
+          this.blockModel[cell.getBlock()][i].clearCandidate(cell.getVal());
         }
       }
     });
@@ -214,7 +214,7 @@ export default class Sudoku {
    */
   private removePencilMarks(cells: Cell[], candidates: number[]): void {
     cells.forEach((cell: Cell) => {
-      candidates.forEach((digit: number) => cell.candidates[digit] = 0);
+      candidates.forEach((digit: number) => cell.clearCandidate(digit));
     });
   }
 
@@ -227,7 +227,7 @@ export default class Sudoku {
     cells.forEach(cell => {
       cell.getCandidates().forEach(candidate => {
         if (!combination.includes(candidate)) {
-          cell.candidates[candidate] = 0;
+          cell.clearCandidate(candidate);
         }
       });
     });
@@ -250,17 +250,17 @@ export default class Sudoku {
     const result: Cell[] = [];
     this.forEachHouse((cells: Cell[], houseName) => {
       cells.forEach((cell: Cell, index: number) => {
-        if (cell.val === 0 && cell.getNumberOfCandidates() === size) {
+        if (cell.getVal() === 0 && cell.getNumberOfCandidates() === size) {
           // See if remaining cells have the same content as the current cell
           let matchingCells: Cell[] = new Array<Cell>();
           matchingCells.push(cell);
           for (let remainingCellIndex = index + 1; remainingCellIndex < cells.length; ++remainingCellIndex) {
-            if (cells[remainingCellIndex].val === 0 && cell.hasSameCandidates(cells[remainingCellIndex])) {
+            if (cells[remainingCellIndex].getVal() === 0 && cell.hasSameCandidates(cells[remainingCellIndex])) {
               matchingCells.push(cells[remainingCellIndex]);
             }
           }
           if (matchingCells.length === size) {
-            matchingCells.forEach(matchingCell => matchingCell.digits = matchingCells[0].getCandidates().toString());
+            matchingCells.forEach(matchingCell => matchingCell.setSolvedCandidates(matchingCells[0].getCandidates().toString()));
             this.removePencilMarks(this.subtractSetsOfCells(cells, matchingCells), matchingCells[0].getCandidates());
             result.push(...matchingCells);
           }
@@ -287,10 +287,10 @@ export default class Sudoku {
     for (let rc = 0; rc < 9; ++rc) {
       for (let treeCells = 0; treeCells < 3; ++treeCells) {
         const threeRowCells = this.rowModel[rc].slice(treeCells * 3, treeCells * 3 + 3);
-        this.findPointingValuesForCells(threeRowCells, this.blockModel[threeRowCells[0].block], this.rowModel[rc]);
+        this.findPointingValuesForCells(threeRowCells, this.blockModel[threeRowCells[0].getBlock()], this.rowModel[rc]);
 
         const threeColCells = this.colModel[rc].slice(treeCells * 3, treeCells * 3 + 3);
-        this.findPointingValuesForCells(threeColCells, this.blockModel[threeColCells[0].block], this.colModel[rc]);
+        this.findPointingValuesForCells(threeColCells, this.blockModel[threeColCells[0].getBlock()], this.colModel[rc]);
       }
     }
     
@@ -301,14 +301,14 @@ export default class Sudoku {
     // Check if the "three cells" contain digits not occurring in the "block cells"
     for (let digit = 1; digit <= 9; ++digit) {
       threeCells.forEach((cell: Cell) => {
-        if (cell.val == 0 && cell.candidates[digit] === digit) {
+        if (cell.getVal() === 0 && cell.isCandidate(digit)) {
           // Check if the remaining cells in the block do not contain the digit
-          if (!blockCells.some((blockCell: Cell) => blockCell.val === 0 && blockCell.candidates[digit] === digit && !blockCell.inSet(threeCells))) {
+          if (!blockCells.some((blockCell: Cell) => blockCell.getVal() === 0 && blockCell.isCandidate(digit) && !blockCell.inSet(threeCells))) {
             // Remove the digit as a candidate from the supplied house cells
             houseCells.forEach((houseCell: Cell) => {
-              if (!houseCell.inSet(threeCells) && houseCell.val === 0 && houseCell.candidates[digit] === digit) {
+              if (!houseCell.inSet(threeCells) && houseCell.getVal() === 0 && houseCell.isCandidate(digit)) {
                 console.log(`Can remove digit: ${digit} from cell: ${houseCell}`);
-                houseCell.candidates[digit] = 0;
+                houseCell.clearCandidate(digit);
               }
             });
           }
@@ -333,7 +333,7 @@ export default class Sudoku {
 
     houseCells.forEach((houseCell, houseCellIndex) => {
       // Next if statement makes sure that we are not finding naked values
-      if (houseCell.getNumberOfCandidates() > size && houseCell.val === 0) {
+      if (houseCell.getNumberOfCandidates() > size && houseCell.getVal() === 0) {
         const houseCellCombinations = houseCell.getCombinationsOfCandidates(size);
         houseCellCombinations.forEach(houseCellCombination => {
           const cellsWithSameCombination = this.findOtherCellsWithCombination(houseCellCombination, houseCells, houseCellIndex);
@@ -341,7 +341,7 @@ export default class Sudoku {
             cellsWithSameCombination.push(houseCell);
             if (this.check(houseCells, cellsWithSameCombination, houseCellCombination)) {
               this.removePencilMarksWhenNotInCombination(cellsWithSameCombination, houseCellCombination);
-              cellsWithSameCombination.forEach(cellWithSameCombination => cellWithSameCombination.digits = houseCellCombination.toString());
+              cellsWithSameCombination.forEach(cellWithSameCombination => cellWithSameCombination.setSolvedCandidates(houseCellCombination.toString()));
               result.push(...cellsWithSameCombination);
             }
           }
@@ -356,7 +356,7 @@ export default class Sudoku {
     const result: Cell[] = [];
 
     houseCells.forEach((cell, houseCellIndex) => {
-      if (cellIndex !== houseCellIndex && houseCells[houseCellIndex].val === 0) {
+      if (cellIndex !== houseCellIndex && houseCells[houseCellIndex].getVal() === 0) {
         let cellCombinations = cell.getCombinationsOfCandidates(combination.length);
         cellCombinations.forEach(cellCombination => {
           if (this.areCombinationsEqual(combination, cellCombination)) {
@@ -393,7 +393,7 @@ export default class Sudoku {
     const filteredHouseCells = houseCells.filter(houseCell => !cellsWithSameCombination.includes(houseCell));
     filteredHouseCells.forEach(filteredHouseCell => {
       combination.forEach(digit => {
-        if (filteredHouseCell.val === 0 && filteredHouseCell.candidates[digit] !== 0) {
+        if (filteredHouseCell.getVal() === 0 && filteredHouseCell.isCandidate(digit)) {
           result = false;
         }
       });
@@ -410,14 +410,14 @@ export default class Sudoku {
     let result = ''
     for (let row = 0; row < 9; ++row) {
       for (let col = 0; col < 9; ++col) {
-        result += +sudoku.rowModel[row][col].val;
+        result += +sudoku.rowModel[row][col].getVal();
       }
       result += '\n';
     }
 
     for (let row = 0; row < 9; ++row) {
       for (let col = 0; col < 9; ++col) {
-        result += `${row}:${col}:${sudoku.rowModel[row][col].val} = ${sudoku.rowModel[row][col].candidates}\n`;
+        result += `${row}:${col}:${sudoku.rowModel[row][col].getVal()} = ${sudoku.rowModel[row][col].getCandidates()}\n`;
       }
     }
 
