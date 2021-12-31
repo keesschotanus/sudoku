@@ -2,6 +2,15 @@ h1 {
     font-size: x-large;
 }
 
+.container {
+    display: grid;
+    grid-template-columns: auto auto;
+    padding: 0px;
+    margin: 0;
+    height: fit-content;
+    width: fit-content;
+}
+
 .sudoku-container {
     display: grid;
     grid-template-columns: auto auto auto;
@@ -30,6 +39,7 @@ h1 {
 
 .sudoku-cell {
     padding: 20px;
+    font-size: 28px;
 }
 
 .sudoku-cell.hidden {
@@ -90,3 +100,12 @@ p {
     margin: 0;
     font-size: medium;
 }
+
+button {
+    background-color: lightblue;
+    font-size: 18px;
+    margin: 7px;
+    padding: 5px;
+    width: 160px;
+}
+

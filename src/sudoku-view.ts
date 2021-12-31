@@ -23,6 +23,7 @@ export default class SudokuView {
   constructor(model: Sudoku) {
     this.model = model;
     document.addEventListener('keydown', this.onKey);
+    document.getElementById('clearButton')?.addEventListener('click', this.clear);
     document.getElementById('exampleButton')?.addEventListener('click', this.example);
     document.getElementById('nakedSinglesButton')?.addEventListener('click', this.nakedSingles);
     document.getElementById('nakedDoublesButton')?.addEventListener('click', this.nakedDoubles);
@@ -206,6 +207,12 @@ export default class SudokuView {
     this.currentCol = col;
   }
 
+  /**
+   * Clears the Sudoku.
+   * @param event MouseEvent.
+   */
+  private clear = (event: MouseEvent) => this.clearSudoku();
+  
   /**
    * Creates an example Sudoku.
    * @param event MouseEvent.
