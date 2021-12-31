@@ -3,10 +3,10 @@ import SudokuView from './sudoku-view.js';
 export type InvalidCell = { cell: Cell, house: string, digit: number };
 
 /**
- * A Sudoku is a puzzle. 
+ * A Sudoku is a board puzzle. 
  * The board is a 9 x 9 grid divided into 3 x 3 sub-grids.
  * Each row, column and sub-grid should contain the numbers 1 - 9.
- * This class aids in solving a Sudoku.
+ * This class actually solves a Sudoku.
  * I wrote this program to get some understanding of TypeScript.
  * If you really need great support for solving a Sudoku, try
  * <a href="https://www.sudoku-solutions.com/">Sudoku Solutions</a>
@@ -54,7 +54,7 @@ export default class Sudoku {
   /**
    * Creates the row model which is actually the 9 x 9 grid.
    */
-  private createRowModel() {
+  private createRowModel(): void {
     for (let row = 0; row < 9; ++row) {
       this.rowModel[row] = new Array(9);
 
@@ -66,9 +66,9 @@ export default class Sudoku {
 
   /**
    * Creates the column model.
-   * The first row in this model contains all cells of the first row.
+   * The first row in this model contains all cells of the first column.
    */
-  private createColumnModel() {
+  private createColumnModel(): void {
     for (let col = 0; col < 9; ++col) {
       this.colModel[col] = new Array(9);
       for (let row = 0; row < 9; ++row) {
@@ -81,7 +81,7 @@ export default class Sudoku {
    * Creates the block model.
    * The first row in this model contains all cells of the first 3 x 3 block.
    */
-   private createBlockModel() {
+   private createBlockModel(): void {
     for (let block = 0; block < 9; ++block) {
       this.blockModel[block] = new Array(9);
 
@@ -99,7 +99,8 @@ export default class Sudoku {
   }
 
   /**
-   * Resets the Sudoku by clearing all cells.
+   * Resets the Sudoku by clearing all cells,
+   * restoring all possible candidates.
    */
   public reset(): void {
     this.forEachCell(cell => {
@@ -116,19 +117,19 @@ export default class Sudoku {
    * @returns The value of the cell identified by the supplied row and col.
    * 
    */
-  public getCellValue(row: number, col: number) {
+  public getCellValue(row: number, col: number): number {
     return this.rowModel[row][col].getVal();
   }
 
   /**
    * Sets the value of a single cell.
-   * To clear a cell, supply a val os zero.
+   * To clear a cell, supply a val of zero.
    * @param row The zero based row number.
    * @param col The zero based column number.
    * @param val The value of the cell.
    * 
    */
-  public setCellValue(row: number, col: number, val: number) {
+  public setCellValue(row: number, col: number, val: number): void {
     this.rowModel[row][col].setVal(val);
   }
 
@@ -148,7 +149,7 @@ export default class Sudoku {
 
   /**
    * Executes the supplied callback function for every house.
-   * @param callback Function that accepts an arrays of all the cells in the house,
+   * @param callback Function that accepts an array of all the cells in the house,
    *  and the description of the house ("row", "column", or "block".
    */
   public forEachHouse(callback: (cells: Cell[], house: string) => void): void {
@@ -160,7 +161,7 @@ export default class Sudoku {
   }
 
   /**
-    * Tests whether this Sudoku is valid or not.
+    * Verifies whether this Sudoku is valid or not.
     * A Sudoku is valid if each row, column and block does not contain a duplicate (non zero) digit.
     * @returns An array of all the offending cells.
     */
@@ -183,11 +184,7 @@ export default class Sudoku {
    * Resets all pencil marks to 1..9 for every cell.
    */
   public resetPencilMarks(): void {
-    this.forEachCell((cell: Cell) => {
-      for (let digit = 0; digit <= 9; ++digit) {
-        cell.setCandidate(digit);
-      }
-    });
+    this.forEachCell((cell: Cell) => cell.resetCandidates());
   }
 
   /**
@@ -252,7 +249,7 @@ export default class Sudoku {
       cells.forEach((cell: Cell, index: number) => {
         if (cell.getVal() === 0 && cell.getNumberOfCandidates() === size) {
           // See if remaining cells have the same content as the current cell
-          let matchingCells: Cell[] = new Array<Cell>();
+          const matchingCells: Cell[] = new Array<Cell>();
           matchingCells.push(cell);
           for (let remainingCellIndex = index + 1; remainingCellIndex < cells.length; ++remainingCellIndex) {
             if (cells[remainingCellIndex].getVal() === 0 && cell.hasSameCandidates(cells[remainingCellIndex])) {
@@ -275,21 +272,21 @@ export default class Sudoku {
    * Finds pointing values.
    * When a row or column in a block is the only row or column
    * containing a certain digit as a candidate, then the same digit
-   * can be removed from other blocks  in the same row or column.
+   * can be removed from other blocks in the same row or column.
    * Assume for example that only the first three cells of the second row
    * have 1 as a candidate and the remaining cells in the block do not.
    * Then 1 can be removed as a candidate from the other cells in the same row.
-   * @returns All the cells with candidates that are removed.
+   * @returns All the cells with pointing values.
    */
   public findPointingValues(): Cell[] {
     this.updatePencilMarks();
     const result: Cell[] = [];
     for (let rc = 0; rc < 9; ++rc) {
-      for (let treeCells = 0; treeCells < 3; ++treeCells) {
-        const threeRowCells = this.rowModel[rc].slice(treeCells * 3, treeCells * 3 + 3);
+      for (let threeCells = 0; threeCells < 3; ++threeCells) {
+        const threeRowCells = this.rowModel[rc].slice(threeCells * 3, threeCells * 3 + 3);
         this.findPointingValuesForCells(threeRowCells, this.blockModel[threeRowCells[0].getBlock()], this.rowModel[rc]);
 
-        const threeColCells = this.colModel[rc].slice(treeCells * 3, treeCells * 3 + 3);
+        const threeColCells = this.colModel[rc].slice(threeCells * 3, threeCells * 3 + 3);
         this.findPointingValuesForCells(threeColCells, this.blockModel[threeColCells[0].getBlock()], this.colModel[rc]);
       }
     }
@@ -297,6 +294,15 @@ export default class Sudoku {
     return result;
   }
 
+  /**
+   * Finds pointing values for the supplied cells.
+   * When pointing values are found, then the candidates will be removed
+   * from the house cells (unless the house cell is one of the three cells).
+   * @param threeCells Three cells.
+   * @param blockCells Block cells that the three cells are part of.
+   * @param houseCells House cells that the three cells are port of.
+   * @returns All the house cells with pointing values.
+   */
   private findPointingValuesForCells(threeCells: Cell[], blockCells: Cell[], houseCells: Cell[]) {
     // Check if the "three cells" contain digits not occurring in the "block cells"
     for (let digit = 1; digit <= 9; ++digit) {
@@ -307,7 +313,6 @@ export default class Sudoku {
             // Remove the digit as a candidate from the supplied house cells
             houseCells.forEach((houseCell: Cell) => {
               if (!houseCell.inSet(threeCells) && houseCell.getVal() === 0 && houseCell.isCandidate(digit)) {
-                console.log(`Can remove digit: ${digit} from cell: ${houseCell}`);
                 houseCell.clearCandidate(digit);
               }
             });
@@ -316,7 +321,13 @@ export default class Sudoku {
       });
     }
   }
-  
+
+  /**
+   * Finds all the hidden values of the supplied size.
+   * @param size Size of hidden values.
+   *  For hidden singles, supply 1, for hidden doubles supply 2.
+   * @returns All cells with the hidden values.
+   */
   public findHiddenValues(size: number): Cell[] {
     this.updatePencilMarks();
     const result: Cell[] = [];
@@ -328,6 +339,13 @@ export default class Sudoku {
     return result;
   }
 
+  /**
+   * Finds all the hidden values of the supplied size,
+   * with the cells of a single house.
+   * @param size Size of hidden values.
+   * @param houseCells All cells of a single house.
+   * @returns All cells within the house with the hidden values.
+   */
   private findHiddenValuesInHouse(size: number, houseCells: Cell[]): Cell[] {
     const result: Cell[] = [];
 
@@ -339,7 +357,7 @@ export default class Sudoku {
           const cellsWithSameCombination = this.findOtherCellsWithCombination(houseCellCombination, houseCells, houseCellIndex);
           if (cellsWithSameCombination.length + 1 === houseCellCombination.length) {
             cellsWithSameCombination.push(houseCell);
-            if (this.check(houseCells, cellsWithSameCombination, houseCellCombination)) {
+            if (this.checkOtherCellsDoNotContainCandidatesInCombination(houseCells, cellsWithSameCombination, houseCellCombination)) {
               this.removePencilMarksWhenNotInCombination(cellsWithSameCombination, houseCellCombination);
               cellsWithSameCombination.forEach(cellWithSameCombination => cellWithSameCombination.setSolvedCandidates(houseCellCombination.toString()));
               result.push(...cellsWithSameCombination);
@@ -352,12 +370,21 @@ export default class Sudoku {
     return result;
   }
 
+  /**
+   * Finds other cells, that is except for the cell with the supplied cellIndex,
+   * with the supplied combination.
+   * @param combination Combination to look for in cells.
+   * @param houseCells The cells to search for.
+   * @param cellIndex Index of cell that we know has the supplied combination.
+   * @returns All cells within the house with the supplied combination,
+   *  except for the cell with the supplied cellIndex.
+   */
   private findOtherCellsWithCombination(combination: number[], houseCells: Cell[], cellIndex: number): Cell[] {
     const result: Cell[] = [];
 
     houseCells.forEach((cell, houseCellIndex) => {
       if (cellIndex !== houseCellIndex && houseCells[houseCellIndex].getVal() === 0) {
-        let cellCombinations = cell.getCombinationsOfCandidates(combination.length);
+        const cellCombinations = cell.getCombinationsOfCandidates(combination.length);
         cellCombinations.forEach(cellCombination => {
           if (this.areCombinationsEqual(combination, cellCombination)) {
             result.push(houseCells[houseCellIndex]);
@@ -369,6 +396,12 @@ export default class Sudoku {
     return result;
   }
 
+  /**
+   * Determines if two combinations are equal.
+   * @param combinationOne First combination.
+   * @param combinationTwo Second combination.
+   * @returns True when both combinations are equal, otherwise false is returned.
+   */
   private areCombinationsEqual(combinationOne: number [], combinationTwo: number []): boolean {
     let result = combinationOne.length === combinationTwo.length;
     for (let i = 0; result && i < combinationOne.length; ++i) {
@@ -379,7 +412,7 @@ export default class Sudoku {
   }
 
   /**
-   * Subtracts cellSetTwo from cellSetOne.
+   * Computes the difference of the first set minus the second set.
    * @param cellSetOne Set of cells.
    * @param cellSetTwo Set of cells.
    * @returns The difference betwee cellSetOne and cellSetTwo.
@@ -388,7 +421,15 @@ export default class Sudoku {
     return cellSetOne.filter(cell => !cellSetTwo.includes(cell));
   }
 
-  private check(houseCells: Cell[], cellsWithSameCombination: Cell[], combination: number[]): boolean {
+  /**
+   * Checks if other cells do not contain candidates that are present in the supplied combination.
+   * @param houseCells to check.
+   * @param cellsWithSameCombination Cells in the house that contains the supplied combination.
+   * @param combination The combination of candidates present in the supplied cells with the same combination.
+   * @returns True when the remaining houseCells do not contain any candidates that are present
+   *  in the supplied combination.
+   */
+  private checkOtherCellsDoNotContainCandidatesInCombination(houseCells: Cell[], cellsWithSameCombination: Cell[], combination: number[]): boolean {
     let result = true;
     const filteredHouseCells = houseCells.filter(houseCell => !cellsWithSameCombination.includes(houseCell));
     filteredHouseCells.forEach(filteredHouseCell => {
@@ -425,6 +466,7 @@ export default class Sudoku {
   }
 }
 
+//Constructs the Sudoku
 let sudoku: Sudoku;
 document.addEventListener('DOMContentLoaded', event => {
   sudoku = new Sudoku();

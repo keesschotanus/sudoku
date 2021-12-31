@@ -268,7 +268,7 @@ export default class SudokuView {
       sudokuCellElement.classList.add('error');
       sudokuCellElement.setAttribute("title", `The cell in this ${invalidCell.house}, contains the duplicate digit: ${invalidCell.digit}`);
     });
-  };
+  }
 
   /**
    * Locates all the naked singles.
