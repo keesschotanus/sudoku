@@ -53,12 +53,12 @@ h1 {
 
 .sudoku-cell.naked-single {
     background-color: aqua;
-    color: aqua;
+    color: black;
 }
 
 .sudoku-cell.hidden-single {
-    background-color: blue;
-    color: blue; 
+    background-color: burlywood;
+    color: black; 
 }
 
 .sudoku-cell.naked-double {

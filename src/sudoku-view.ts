@@ -276,6 +276,7 @@ export default class SudokuView {
       const digit = nakedSingleCell.getCandidates()[0];
       viewCell.classList.add('naked-single');
       viewCell.setAttribute('title', 'Naked single, can only contain a ' + digit);
+      this.setValue(nakedSingleCell.row, nakedSingleCell.col, digit);
     });
   };
 
@@ -306,6 +307,7 @@ export default class SudokuView {
       const viewCell = document.getElementById(SudokuView.idFromRowCol(hiddenSingleCell.row, hiddenSingleCell.col)) as HTMLDivElement;
       viewCell.classList.add('hidden-single');
       viewCell.setAttribute('title', 'Hidden single, can only contain a ' + hiddenSingleCell.digits);
+      this.setValue(hiddenSingleCell.row, hiddenSingleCell.col, Number(hiddenSingleCell.digits));
     });
   };
 
