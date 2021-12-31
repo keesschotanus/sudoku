@@ -17,15 +17,12 @@ export type InvalidCell = { cell: Cell, house: string, digit: number };
  */
 export default class Sudoku {
 
-  rowModel: Cell[][] = new Array(9);
-  colModel: Cell[][] = new Array(9);
-  blockModel: Cell[][] = new Array(9);
+  private rowModel: Cell[][] = new Array(9);
+  private colModel: Cell[][] = new Array(9);
+  private blockModel: Cell[][] = new Array(9);
 
   // The view in the MVC pattern
-  sudokuView: SudokuView;
-
-  currentRow = 0;
-  currentCol = 0;
+  private sudokuView: SudokuView;
 
   /**
    * Creates a Sudoku object by creating the different models plus the view.
@@ -99,6 +96,29 @@ export default class Sudoku {
         }
       }
     }
+  }
+
+  /**
+   * Gets the value of a single cell.
+   * @param row The zero based row number.
+   * @param col The zero based column number.
+   * @returns The value of the cell identified by the supplied row and col.
+   * 
+   */
+  public getCellValue(row: number, col: number) {
+    return this.rowModel[row][col].val;
+  }
+
+  /**
+   * Sets the value of a single cell.
+   * To clear a cell, supply a val os zero.
+   * @param row The zero based row number.
+   * @param col The zero based column number.
+   * @param val The value of the cell.
+   * 
+   */
+  public setCellValue(row: number, col: number, val: number) {
+    this.rowModel[row][col].val = val;
   }
 
   /**
