@@ -99,6 +99,17 @@ export default class Sudoku {
   }
 
   /**
+   * Resets the Sudoku by clearing all cells.
+   */
+  public reset(): void {
+    this.forEachCell(cell => {
+      cell.val = 0;
+      cell.candidates = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+      cell.digits = '';
+    });
+  }
+
+  /**
    * Gets the value of a single cell.
    * @param row The zero based row number.
    * @param col The zero based column number.

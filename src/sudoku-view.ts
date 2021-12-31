@@ -242,11 +242,11 @@ export default class SudokuView {
   private clearSudoku(): void {
     SudokuView.clearClassesFromAllCells('error', ...SudokuView.cssClassesForSolvedCells);
     SudokuView.forEachCell(cell => {
-      const [row, col] = SudokuView.rowColFromId(cell.getAttribute('id') as string);
       cell.innerText = '0';
       cell.classList.add('hidden');
-      this.model.setCellValue(row, col , 0);
     });
+
+    this.model.reset();
   }
 
   /**
