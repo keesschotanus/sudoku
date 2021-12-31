@@ -260,6 +260,7 @@ export default class Sudoku {
             }
           }
           if (matchingCells.length === size) {
+            matchingCells.forEach(matchingCell => matchingCell.digits = matchingCells[0].getCandidates().toString());
             this.removePencilMarks(this.subtractSetsOfCells(cells, matchingCells), matchingCells[0].getCandidates());
             result.push(...matchingCells);
           }

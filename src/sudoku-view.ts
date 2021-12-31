@@ -290,7 +290,7 @@ export default class SudokuView {
     nakedDoubleCells.forEach((nakedDoubleCell: Cell) => {
       const viewCell = document.getElementById(SudokuView.idFromRowCol(nakedDoubleCell.row, nakedDoubleCell.col)) as HTMLDivElement;
       viewCell.classList.add('naked-double');
-      viewCell.setAttribute('title', 'Naked double, can only contain the digits ' + nakedDoubleCell.getCandidates());
+      viewCell.setAttribute('title', 'Naked double, can only contain the digits ' + nakedDoubleCell.digits);
     });
   };
 
