@@ -43,12 +43,12 @@ h1 {
 }
 
 .sudoku-cell.hidden {
-    background-color: 2196F3;
+    background-color: #2196F3;
     color: #2196F3;
 }
 
 .sudoku-cell.selected {
-    background-color: limegreen;
+    background-color: limegreen!important;
     color: black;
 }
 
