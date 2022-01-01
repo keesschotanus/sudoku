@@ -13,7 +13,7 @@ export default class SudokuView {
   /**
    * All CSS classes related to the different solving algorithms.
    */
-  private static cssClassesForSolvedCells = ['hidden-single', 'hidden-double', 'naked-single', 'naked-double', 'pointing-value'];
+  private static cssClassesForSolvedCells = ['hidden-single', 'hidden-double', 'naked-single', 'naked-double', 'pointing-value', 'backtracked'];
 
   /**
    * Creates this view from the supplied model.
@@ -30,6 +30,7 @@ export default class SudokuView {
     document.getElementById('hiddenSinglesButton')?.addEventListener('click', this.hiddenSingles);
     document.getElementById('hiddenDoublesButton')?.addEventListener('click', this.hiddenDoubles);
     document.getElementById('pointingValuesButton')?.addEventListener('click', this.pointingValues);
+    document.getElementById('solveButton')?.addEventListener('click', this.solve);
   }
 
   /**
@@ -347,5 +348,21 @@ export default class SudokuView {
       viewCell.setAttribute('title', 'Pointing value, can only contain: ' + pointingValueCell.getSolvedCandidates());
     });
   };
+
+  /**
+   * Solves the Sudoku using back tracking.
+   * @param event MouseEvent.
+   */
+  private solve = (event: MouseEvent) => {
+    SudokuView.clearClassesFromAllCells(...SudokuView.cssClassesForSolvedCells);
+    const backTrackedCells = this.model.solve();
+    backTrackedCells.forEach((backTrackedCell: Cell) => {
+      const viewCell = document.getElementById(SudokuView.idFromRowCol(backTrackedCell.getRow(), backTrackedCell.getCol())) as HTMLDivElement;
+      viewCell.classList.add('backtracked');
+      viewCell.setAttribute('title', 'Backtracked value, should contain: ' + backTrackedCell.getVal());
+      this.setValue(backTrackedCell.getRow(), backTrackedCell.getCol(), backTrackedCell.getVal());
+    });
+  };
+
 
 }

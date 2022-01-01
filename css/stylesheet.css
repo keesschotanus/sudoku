@@ -86,6 +86,11 @@ h1 {
     color: darkgoldenrod;
 }
 
+.sudoku-cell.backtracked {
+    background-color: darksalmon;
+    color: black;
+}
+
 .sudoku-cell-middle-row {
     border-top: 1px solid gray;
     border-bottom: 1px solid gray;

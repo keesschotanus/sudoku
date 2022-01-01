@@ -150,6 +150,22 @@ export default class Cell {
     return set.includes(this);
   }
 
+  /**
+   * Gets the next possible value for this cell.
+   * WHen no such candidate exists, 0 is returned.
+   * That is the first candidate value greater than the current value.
+   * @returns The first candidate greater than the current value.
+   */
+  public getNextValue(): number {
+    for (let digit = this.val + 1; digit <= 9; ++digit) {
+      if (this.candidates[digit] === digit) {
+        return digit;
+      }
+    }
+
+    return 0;
+  }
+
   /* 
    * Creates a String representation of this Sudoku cell. 
    * @return a String representation of this Sudoku cell. 

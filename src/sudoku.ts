@@ -444,6 +444,68 @@ export default class Sudoku {
   }
 
   /**
+   * Solves this Sudoku using back tracking.
+   */
+  public solve(): Cell[] {
+    this.updatePencilMarks();
+
+    const emptyCells = this.getEmptyCells();
+    let emptyCellIndex = 0;
+
+    while (!this.isSolved()) {
+      const nextValue = emptyCells[emptyCellIndex].getNextValue();
+      if (nextValue === 0) {
+        if (emptyCellIndex === 0) {
+          throw new Error('This Sudoku has no solution!');
+        }
+        // Follow the track back
+        for (let i = emptyCellIndex; i < emptyCells.length; ++i) {
+          emptyCells[i].setVal(0);
+        }
+        --emptyCellIndex;
+      } else {
+        emptyCells[emptyCellIndex].setVal(nextValue);
+        if (this.validate().length === 0) {
+          ++emptyCellIndex;
+        }
+      }
+    }
+
+    return emptyCells;
+  }
+
+  /**
+   * Gets all the empty cells (every cell that has a 0 value).
+   * @returns All the empty cells.
+   */
+  private getEmptyCells(): Cell[] {
+    const result = new Array<Cell>();
+    this.forEachCell(cell => {
+      if (cell.getVal() === 0) {
+        result.push(cell);
+      }
+    });
+
+    return result;
+  }
+
+  /**
+   * Determines if this Sudoku is solved.
+   * Being solved is not the same as being valid.
+   * @returns True when this Sudoku is solved (every cell has a value).
+   */
+  private isSolved(): boolean {
+    let result = true;
+    for (let row = 0; row < 9 && result; ++row) {
+      for (let col = 0; col < 9 && result; ++col) {
+        result = this.rowModel[row][col].getVal() !== 0;
+      }
+    }
+
+    return result;
+  }
+
+  /**
    * Creates a representation of the Sudoku board.
    * @returns A representation of the Sudoku board.
    */
