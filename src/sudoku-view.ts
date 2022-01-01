@@ -173,6 +173,14 @@ export default class SudokuView {
           this.model.resetPencilMarks();
         }
         this.validate();
+        // Move the cursor
+        let newCol = this.currentCol + 1;
+        let newRow = this.currentRow;
+        if (newCol > 8) {
+          newCol = 0;
+          newRow += 1;
+        }
+        this.selectCell(newRow, newCol);
         break;
       case 'ArrowLeft':
         this.selectCell(this.currentRow, this.currentCol === 0 ? 8 : this.currentCol - 1);
@@ -212,7 +220,10 @@ export default class SudokuView {
    * Clears the Sudoku.
    * @param event MouseEvent.
    */
-  private clear = (event: MouseEvent) => this.clearSudoku();
+  private clear = (event: MouseEvent) => {
+    this.clearSudoku();
+    this.setMessage('');
+  };
   
   /**
    * Creates an example Sudoku.
@@ -355,14 +366,22 @@ export default class SudokuView {
    */
   private solve = (event: MouseEvent) => {
     SudokuView.clearClassesFromAllCells(...SudokuView.cssClassesForSolvedCells);
-    const backTrackedCells = this.model.solve();
-    backTrackedCells.forEach((backTrackedCell: Cell) => {
-      const viewCell = document.getElementById(SudokuView.idFromRowCol(backTrackedCell.getRow(), backTrackedCell.getCol())) as HTMLDivElement;
-      viewCell.classList.add('backtracked');
-      viewCell.setAttribute('title', 'Backtracked value, should contain: ' + backTrackedCell.getVal());
-      this.setValue(backTrackedCell.getRow(), backTrackedCell.getCol(), backTrackedCell.getVal());
-    });
+    try {
+      const backTrackedCells = this.model.solve();
+      backTrackedCells.forEach((backTrackedCell: Cell) => {
+        const viewCell = document.getElementById(SudokuView.idFromRowCol(backTrackedCell.getRow(), backTrackedCell.getCol())) as HTMLDivElement;
+        viewCell.classList.add('backtracked');
+        viewCell.setAttribute('title', 'Backtracked value, should contain: ' + backTrackedCell.getVal());
+        this.setValue(backTrackedCell.getRow(), backTrackedCell.getCol(), backTrackedCell.getVal());
+      });
+      this.setMessage('');
+    } catch(error) {
+      this.setMessage((error as Error).message);
+    }
   };
 
-
+  private setMessage(message: string): void {
+    const messageElement = document.getElementById('message') as HTMLParagraphElement;
+    messageElement.innerText = message;
+  }
 }
