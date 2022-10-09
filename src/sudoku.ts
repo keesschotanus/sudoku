@@ -528,7 +528,7 @@ export default class Sudoku {
   }
 }
 
-//Constructs the Sudoku
+// Constructs the Sudoku
 let sudoku: Sudoku;
 document.addEventListener('DOMContentLoaded', event => {
   sudoku = new Sudoku();

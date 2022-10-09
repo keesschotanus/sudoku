@@ -106,7 +106,7 @@ p {
     font-size: medium;
 }
 
-button {
+.action-button {
     background-color: lightblue;
     font-size: 18px;
     margin: 7px;
@@ -114,3 +114,12 @@ button {
     width: 160px;
 }
 
+.number-container {
+    display: inline-block;
+    background-color: #2196F3;
+    border: 1px solid black;
+    margin-top: 10px;
+}
+.number-button {
+    font-size: 32px;
+}

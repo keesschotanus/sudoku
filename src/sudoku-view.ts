@@ -31,6 +31,11 @@ export default class SudokuView {
     document.getElementById('hiddenDoublesButton')?.addEventListener('click', this.hiddenDoubles);
     document.getElementById('pointingValuesButton')?.addEventListener('click', this.pointingValues);
     document.getElementById('solveButton')?.addEventListener('click', this.solve);
+
+    let numberButtons: HTMLCollectionOf<Element> = document.getElementsByClassName('number-button');
+    for (let index = 0; index < numberButtons.length; ++index) {
+      (numberButtons[index] as HTMLButtonElement).addEventListener('click', this.onClickNumberButton);
+    }
   }
 
   /**
@@ -137,7 +142,7 @@ export default class SudokuView {
   }
 
   /**
-   * Processes all keyboard events.
+   * Processes all keyboard events on a cell.
    * - Entering a number from 0 to 9 in a cell
    * - Using an arrow key to select a cell
    * - backtick to display the Sudoku model in the console.
@@ -151,12 +156,6 @@ export default class SudokuView {
         console.log(this.model.toString());
         break;
       case '0':
-        cell.classList.add('hidden');
-        cell.innerText = '' + event.key;
-        this.model.setCellValue(this.currentRow, this.currentCol, +event.key);
-        this.model.resetPencilMarks();
-        this.validate();
-        break;
       case '1':
       case '2':
       case '3':
@@ -166,21 +165,7 @@ export default class SudokuView {
       case '7':
       case '8':
       case '9':
-        cell.innerText = '' + event.key;
-        cell.classList.remove('hidden', ...SudokuView.cssClassesForSolvedCells);
-        this.model.setCellValue(this.currentRow, this.currentCol, +event.key);
-        if (this.model.getCellValue(this.currentRow, this.currentCol) !== +event.key) {
-          this.model.resetPencilMarks();
-        }
-        this.validate();
-        // Move the cursor
-        let newCol = this.currentCol + 1;
-        let newRow = this.currentRow;
-        if (newCol > 8) {
-          newCol = 0;
-          newRow += 1;
-        }
-        this.selectCell(newRow, newCol);
+        this.processNumericKeyPress(cell, event.key);
         break;
       case 'ArrowLeft':
         this.selectCell(this.currentRow, this.currentCol === 0 ? 8 : this.currentCol - 1);
@@ -195,7 +180,50 @@ export default class SudokuView {
         this.selectCell(this.currentRow === 8 ? 0 : this.currentRow + 1, this.currentCol);
         break;
     }
+  }
 
+  /**
+   * Processes clicking one of the numeric buttons at the bottom of the screen. 
+   * @param event The mouse event.
+   */
+  private onClickNumberButton = (event: MouseEvent): void => {
+    const numberButton =  event.target as HTMLButtonElement;
+    const numberClicked = numberButton.getAttribute('id')?.charAt(2) ?? '0';
+    const currentCell = document.getElementById(SudokuView.idFromRowCol(this.currentRow, this.currentCol)) as HTMLDivElement;
+    this.processNumericKeyPress(currentCell, numberClicked);
+  }
+
+  /**
+   * Processes a number the user has entered in a cell,
+   * or by clicking one of the numeric buttons.
+   * @param cell The Sudoku cell for which a number is entered.
+   * @param keyValue The key that has been pressed.
+   */
+  private processNumericKeyPress(cell: HTMLDivElement, keyValue: string) {
+    cell.innerText = keyValue;
+    this.model.setCellValue(this.currentRow, this.currentCol, +keyValue);
+
+    console.log(keyValue)
+    if (keyValue === '0') {
+      cell.classList.add('hidden');
+      this.model.resetPencilMarks();
+    } else {
+      cell.classList.remove('hidden', ...SudokuView.cssClassesForSolvedCells);
+      this.model.setCellValue(this.currentRow, this.currentCol, +keyValue);
+      if (this.model.getCellValue(this.currentRow, this.currentCol) !== +keyValue) {
+        this.model.resetPencilMarks();
+      }
+    }
+
+    this.validate();
+    // Move the cursor
+    let newCol = this.currentCol + 1;
+    let newRow = this.currentRow;
+    if (newCol > 8) {
+      newCol = 0;
+      newRow += 1;
+    }
+    this.selectCell(newRow, newCol);
   }
 
   /**
